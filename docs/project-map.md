@@ -6,11 +6,20 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 ## Project Structure
 - `bin/` - Contains the CLI entry point
   - `cli.js` - Main CLI entry point that handles command-line arguments using Commander.js
+    - Includes interactive menu for better user experience
+    - Provides color-coded output for better readability
+    - Implements follow-up actions based on command results
 - `src/` - Source code directory
   - `commands/` - Command implementations
     - `setup-node.js` - NVM and Node.js setup on DreamHost server
+      - Supports latest Node.js LTS versions (22.14.0, 20.18.3, 18.20.6)
+      - Uses NVM 0.40.1 for Node.js version management
   - `utils/` - Utility functions
     - `server-check.js` - Utility for checking server environment (NVM and Node.js versions)
+      - Includes SSH connection verification and authentication diagnostics
+      - Supports multiple authentication methods with fallbacks
+      - Provides detailed troubleshooting guidance
+      - Checks for latest recommended Node.js and NVM versions
 - `templates/` - Configuration templates
   - `deploy.config.template.json` - Template for deployment configuration
 - `docs/` - Documentation
@@ -51,7 +60,11 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
   - Clear guidance on running the tool in the appropriate environment
 
 ### Authentication Methods
-- Simplified authentication with focus on password-based authentication
+- Robust SSH authentication with comprehensive diagnostics
+  - Automatic detection of available authentication methods on the server
+  - Support for both password and key-based authentication
+  - Multiple fallback mechanisms for authentication failures
+  - Detailed troubleshooting guidance for connection issues
   - Password authentication as the recommended method for all platforms
   - Interactive password prompts with masked input
   - Option to save password in configuration (not recommended for security)
@@ -69,14 +82,18 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 
 ### Server Environment Setup
 - Automatic server environment check before deployment
+  - Verification of SSH connectivity with robust error handling
+  - Automatic detection of available authentication methods
   - Verification of NVM and Node.js versions
   - Comparison against recommended versions (NVM 0.40.1, Node.js 20.18.0)
   - Interactive prompt to set up or update if needed
+  - Dedicated `check-server` command for independent verification
 - NVM and Node.js installation on DreamHost server
   - Support for custom Node.js versions
   - Automatic configuration of environment variables
   - Server-specific configuration for Apache and Nginx
   - Support for both SSH key and password authentication
+  - Comprehensive error handling for SSH connection issues
 
 ### User Interface
 - User-friendly CLI with clear instructions

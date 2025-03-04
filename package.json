@@ -1,6 +1,6 @@
 {
   "name": "dreamhost-deployer",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "A CLI tool for deploying websites to DreamHost servers via SSH",
   "main": "deploy.js",
   "bin": {

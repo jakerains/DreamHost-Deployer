@@ -1,4 +1,4 @@
-# Publishing Guide for DreamHost Deployer v0.4.5
+# Publishing Guide for DreamHost Deployer v0.5.0
 
 This guide outlines the steps for publishing the DreamHost Deployer package to npm.
 
@@ -6,18 +6,18 @@ This guide outlines the steps for publishing the DreamHost Deployer package to n
 
 Before publishing, ensure the following:
 
-- [x] Version number updated to 0.4.5 in package.json
+- [x] Version number updated to 0.5.0 in package.json
 - [x] CHANGELOG.md updated with all new features and improvements
 - [x] All code changes tested and working correctly
 - [x] Documentation updated to reflect new features and changes
-- [x] Release notes created in docs/v0.4.5-release-notes.md
+- [x] Release notes created in docs/v0.5.0-release-notes.md
 
-### Key Features in v0.4.5
+### Key Features in v0.5.0
 
-- **Server Environment Check**: Automatically checks for NVM and Node.js on the server
-- **Version Verification**: Compares installed versions against recommended versions
-- **Interactive Setup**: Offers to set up or update NVM and Node.js if needed
-- **Enhanced Node.js Setup**: Added password authentication support and better error handling
+- **Interactive CLI Menu**: Main menu with all available commands
+- **Enhanced Server Environment Checks**: More detailed output with follow-up actions
+- **Updated Node.js Support**: Added support for Node.js 22.14.0 LTS (Jod)
+- **Improved User Experience**: Better color-coded output and guidance
 
 ## Publishing Steps
 
@@ -41,7 +41,7 @@ Before publishing, ensure the following:
    ```
    npm view dreamhost-deployer
    ```
-   Check that the version is 0.4.5 and all information is correct.
+   Check that the version is 0.5.0 and all information is correct.
 
 ## Testing on Target System
 
@@ -56,35 +56,60 @@ After publishing, test the package on a target system:
    ```
    dreamhost-deployer --version
    ```
-   Should output 0.4.5
+   Should output 0.5.0
 
-3. **Set up SSH with password authentication**:
+3. **Try the interactive menu**:
    ```
-   dreamhost-deployer setup-ssh
+   dreamhost-deployer
    ```
-   Choose password authentication when prompted.
+   Verify that the menu displays correctly and all options work.
 
-4. **Deploy using the new method**:
+4. **Check server environment**:
+   ```
+   dreamhost-deployer check-server
+   ```
+   Verify that the enhanced output and follow-up actions work correctly.
+
+5. **Set up Node.js with the latest version**:
+   ```
+   dreamhost-deployer setup-node
+   ```
+   Choose Node.js 22.14.0 LTS and verify the installation.
+
+6. **Deploy using the new method**:
    ```
    dreamhost-deployer deploy
    ```
-   Verify that the server environment check runs before deployment.
+   Verify that the deployment process works correctly.
 
 ## Troubleshooting
 
-### Server Environment Check Issues
-- If the server environment check fails, try running the setup-node command manually:
-  ```
-  dreamhost-deployer setup-node
-  ```
-- Check SSH connectivity to ensure the tool can connect to the server
-- Verify that the user has sufficient permissions to install NVM and Node.js
+### Interactive Menu Issues
+- If the menu doesn't display correctly, check the terminal compatibility
+- Verify that inquirer and chalk are installed correctly
+- Try running with the specific command instead (e.g., `dreamhost-deployer check-server`)
 
-### Authentication Issues
-- Ensure the username and host are correct in the configuration
-- Try running the SSH command manually to verify connectivity:
+### SSH Authentication Issues
+- If SSH authentication fails, try the troubleshooting guidance provided by the tool
+- Check the available authentication methods with:
+  ```
+  ssh -v username@host
+  ```
+- Verify SSH key permissions if using key authentication
+- Try connecting manually to verify credentials:
   ```
   ssh username@host
+  ```
+
+### Server Environment Check Issues
+- If the server environment check fails, verify SSH connectivity
+- Check if NVM is installed manually:
+  ```
+  ssh username@host "source ~/.nvm/nvm.sh && nvm --version"
+  ```
+- Check if Node.js is installed manually:
+  ```
+  ssh username@host "source ~/.nvm/nvm.sh && node --version"
   ```
 
 ### Deployment Issues

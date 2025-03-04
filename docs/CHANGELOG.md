@@ -2,6 +2,46 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.5.0] - 2025-03-08
+
+### Added
+- Added interactive CLI menu for better user experience
+  - Main menu with all available commands
+  - Emoji icons for better visual cues
+  - Improved command flow with follow-up prompts
+- Enhanced check-server command
+  - More detailed output with color-coded information
+  - Option to deploy or setup Node.js after checking
+  - Improved user guidance throughout the process
+- Updated Node.js and NVM versions
+  - Added support for Node.js 22.14.0 LTS (Jod)
+  - Updated to NVM 0.40.1
+  - Better version selection in setup-node command
+
+### Improved
+- Better user interface with chalk for colored output
+- More intuitive command flow with follow-up actions
+- Clearer error messages and troubleshooting guidance
+- Simplified CLI usage with default interactive menu
+
+## [0.4.6] - 2025-03-07
+
+### Added
+- Added robust SSH authentication diagnostics
+  - Automatic detection of available authentication methods
+  - Detailed troubleshooting guidance for SSH connection issues
+  - Support for multiple authentication fallback methods
+  - New `check-server` command to verify server environment independently
+  - Comprehensive error handling for SSH connection failures
+
+### Improved
+- Enhanced server environment check feature
+  - Better error handling for SSH connection issues
+  - More reliable detection of NVM and Node.js installations
+  - Improved password handling with option to save for future operations
+  - Clearer user guidance throughout the verification process
+  - Suppressed unnecessary error messages from server commands
+
 ## [0.4.5] - 2025-03-06
 
 ### Added

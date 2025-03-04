@@ -5,6 +5,7 @@ const inquirer = require('inquirer');
 const { Client } = require('ssh2');
 const os = require('os');
 const chalk = require('chalk'); // Using chalk for better formatting
+const { verifySSHConnection } = require('../utils/server-check');
 
 /**
  * Setup NVM and Node.js on DreamHost server
@@ -24,6 +25,14 @@ async function setupNodeOnServer(config) {
     console.log(chalk.cyan(`  • Username: ${chalk.white(config.username)}`));
     console.log(chalk.cyan(`  • Web Server: ${chalk.white(config.webServer || 'Apache (default)')}\n`));
     
+    // Verify SSH connection first
+    console.log(chalk.blue('🔑 Verifying SSH connection before proceeding...'));
+    if (!await verifySSHConnection(config)) {
+        console.error(chalk.bold.red('\n❌ Cannot proceed with Node.js setup due to SSH connection issues.'));
+        console.log(chalk.yellow('⚠️ Please fix SSH connection issues before continuing.'));
+        process.exit(1);
+    }
+    
     // Ask for Node.js version with better defaults from DreamHost docs
     const { nodeVersion } = await inquirer.prompt([
         {
@@ -31,12 +40,13 @@ async function setupNodeOnServer(config) {
             name: 'nodeVersion',
             message: 'Select Node.js version to install:',
             choices: [
-                { name: 'Node.js 20.18.0 (LTS - Recommended by DreamHost)', value: '20.18.0' },
-                { name: 'Node.js 18.19.1 (LTS)', value: '18.19.1' },
+                { name: 'Node.js 22.14.0 (LTS - Recommended)', value: '22.14.0' },
+                { name: 'Node.js 20.18.3 (LTS)', value: '20.18.3' },
+                { name: 'Node.js 18.20.6 (LTS)', value: '18.20.6' },
                 { name: 'Node.js 16.20.2 (LTS)', value: '16.20.2' },
                 { name: 'Custom version', value: 'custom' }
             ],
-            default: '20.18.0'
+            default: '22.14.0'
         }
     ]);
     
@@ -68,44 +78,16 @@ async function setupNodeOnServer(config) {
         readyTimeout: 30000
     };
     
-    // Check if we have a password or need to ask for one
-    let password = config.password;
-    if (!config.privateKeyPath && !password) {
-        const { usePassword } = await inquirer.prompt([
-            {
-                type: 'confirm',
-                name: 'usePassword',
-                message: 'No SSH key found. Would you like to use password authentication?',
-                default: true
-            }
-        ]);
-        
-        if (usePassword) {
-            const { sshPassword } = await inquirer.prompt([
-                {
-                    type: 'password',
-                    name: 'sshPassword',
-                    message: 'Enter your SSH password:',
-                    mask: '*'
-                }
-            ]);
-            password = sshPassword;
-        } else {
-            console.error(chalk.red('❌ No authentication method available.'));
-            process.exit(1);
-        }
-    }
-    
-    // Set authentication method
-    if (password) {
-        authConfig.password = password;
+    // Set authentication method based on what worked in verifySSHConnection
+    if (config.password) {
+        authConfig.password = config.password;
     } else if (config.privateKeyPath) {
         try {
             authConfig.privateKey = fs.readFileSync(config.privateKeyPath);
         } catch (error) {
             console.error(chalk.red(`❌ Could not read private key: ${error.message}`));
             
-            // Fall back to password
+            // Ask for password as fallback
             const { fallbackPassword } = await inquirer.prompt([
                 {
                     type: 'password',
@@ -115,6 +97,23 @@ async function setupNodeOnServer(config) {
                 }
             ]);
             authConfig.password = fallbackPassword;
+            
+            // Ask if user wants to save the password
+            const { savePassword } = await inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'savePassword',
+                    message: 'Would you like to save your password for future operations? (Not recommended for security reasons)',
+                    default: false
+                }
+            ]);
+            
+            if (savePassword) {
+                config.password = fallbackPassword;
+                const configPath = path.resolve(process.cwd(), 'deploy.config.json');
+                fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+                console.log(chalk.green('✅ Password saved to configuration.'));
+            }
         }
     }
     
