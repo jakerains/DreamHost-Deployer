@@ -16,6 +16,7 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
   - `CHANGELOG.md` - Project changelog
   - `project-map.md` - This file, documenting the project structure
   - `npm-publishing-guide.md` - Guide for publishing the package to npm
+  - `windows-deployment-guide.md` - Detailed guide for Windows users
 
 ## Core Files
 - `deploy.js` - Main deployment logic
@@ -33,7 +34,14 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 - Reliable input handling without keystroke duplication issues
 
 ### Deployment Method
-- Using `rsync` over SSH for efficient file transfers
+- Using `rsync` over SSH for efficient file transfers on Unix/Linux/macOS
+- Alternative SCP-based deployment for Windows systems without rsync
+- Cross-platform compatibility with Windows, macOS, and Linux
+- Windows-specific detection and handling
+- WSL integration approaches:
+  - Option to run directly from WSL terminal (recommended for best performance)
+  - Fallback to SCP when running from Windows CMD/PowerShell even with WSL installed
+  - Clear guidance on running the tool in the appropriate environment
 - Supporting exclude patterns to skip unnecessary files
 - Automatic SSH key generation and configuration
 
@@ -61,4 +69,5 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 - `chalk` - Terminal text styling
 - `fs-extra` - Enhanced file system operations
 - `inquirer` - Interactive command-line user interfaces
-- `ssh2` - SSH client for Node.js 
+- `ssh2` - SSH client for Node.js
+- `minimatch` - Pattern matching for file paths 

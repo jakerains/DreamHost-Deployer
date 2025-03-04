@@ -134,6 +134,26 @@ git push --tags
 npm publish
 ```
 
+### 6. Update Your Global Installation
+
+After publishing a new version, you may want to update your own global installation to test the published package:
+
+```bash
+# Update the global installation
+npm install -g dreamhost-deployer@latest
+
+# Verify the installed version
+dreamhost-deployer --version
+```
+
+If you're using a scoped package:
+
+```bash
+npm install -g @jakerains/dreamhost-deployer@latest
+```
+
+This ensures you're testing the exact package that users will download from npm, rather than your local development version.
+
 ## Publishing Beta/Release Candidates
 
 For pre-release versions:
@@ -213,6 +233,20 @@ If you encounter authentication issues:
 1. Run `npm logout`
 2. Run `npm login` again
 3. Check your npm profile settings
+
+### Git Working Directory Not Clean
+
+When running `npm version` commands, you might encounter this error:
+
+```
+npm error Git working directory not clean.
+```
+
+To resolve this:
+1. Ensure all changes are committed to Git
+2. Make sure your `.gitignore` file properly excludes build artifacts and temporary files
+3. Run `git status` to check for untracked or modified files
+4. Commit or stash any pending changes before running `npm version` again
 
 ## Useful npm Commands
 

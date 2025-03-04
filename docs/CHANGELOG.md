@@ -5,6 +5,14 @@ All notable changes to the DreamHost Deployer project will be documented in this
 ## [Unreleased]
 
 ### Added
+- Added Windows compatibility improvements
+  - Detect when rsync is not available on Windows systems
+  - Added alternative SCP-based deployment method for Windows
+  - Added WSL installation guidance for Windows users
+  - Added clarification about running from within WSL vs Windows shell
+  - Multiple deployment paths depending on environment (Windows/WSL/Linux/Mac)
+  - Automatic platform detection to choose appropriate deployment method
+  - Detailed user prompts for handling Windows-specific deployment options
 - Added support for setting up NVM and Node.js on DreamHost server
   - New `setup-node` command to install NVM and Node.js
   - Support for custom Node.js versions
