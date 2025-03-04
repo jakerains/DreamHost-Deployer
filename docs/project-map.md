@@ -8,12 +8,14 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
   - `cli.js` - Main CLI entry point that handles command-line arguments using Commander.js
 - `src/` - Source code directory
   - `commands/` - Command implementations
+    - `setup-node.js` - NVM and Node.js setup on DreamHost server
   - `utils/` - Utility functions
 - `templates/` - Configuration templates
   - `deploy.config.template.json` - Template for deployment configuration
 - `docs/` - Documentation
   - `CHANGELOG.md` - Project changelog
   - `project-map.md` - This file, documenting the project structure
+  - `npm-publishing-guide.md` - Guide for publishing the package to npm
 
 ## Core Files
 - `deploy.js` - Main deployment logic
@@ -39,6 +41,20 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 - JSON-based configuration for easy editing and parsing
 - Template-based initialization for consistent configuration
 - Support for custom configuration paths
+- Web server type selection (Apache or Nginx)
+
+### Server Environment Setup
+- NVM and Node.js installation on DreamHost server
+- Support for custom Node.js versions
+- Automatic configuration of environment variables
+- Server-specific configuration for Apache and Nginx
+
+### User Interface
+- User-friendly CLI with clear instructions
+- Visual cues using emoji icons
+- Colored output for better readability
+- Progress indicators for multi-step processes
+- Detailed next steps after each operation
 
 ## Dependencies
 - `commander` - Command-line argument parsing

@@ -5,6 +5,7 @@
   "localPath": "./dist",
   "privateKeyPath": "~/.ssh/id_rsa",
   "targetFolder": "example.com",
+  "webServer": "Apache",
   "exclude": [
     "node_modules",
     ".git",

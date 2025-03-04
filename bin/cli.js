@@ -9,6 +9,7 @@ const path = require('path');
 const { program } = require('commander');
 const deploy = require('../deploy');
 const setupSsh = require('../setup-ssh');
+const setupNode = require('../src/commands/setup-node');
 const pkg = require('../package.json');
 
 // Set up the CLI program
@@ -41,6 +42,14 @@ program
   .description('Initialize a new deployment configuration')
   .action(() => {
     setupSsh.initConfig();
+  });
+
+// Setup Node.js command
+program
+  .command('setup-node')
+  .description('Set up NVM and Node.js on your DreamHost server')
+  .action(() => {
+    setupNode.run();
   });
 
 // Parse command line arguments
