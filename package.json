@@ -1,0 +1,38 @@
+{
+  "name": "dreamhost-deployer",
+  "version": "0.1.0",
+  "description": "A CLI tool for deploying websites to DreamHost servers via SSH",
+  "main": "deploy.js",
+  "bin": {
+    "dreamhost-deployer": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node test.js",
+    "setup-ssh": "node setup-ssh.js"
+  },
+  "keywords": [
+    "dreamhost",
+    "deploy",
+    "ssh",
+    "cli",
+    "web",
+    "hosting"
+  ],
+  "author": "jakerains",
+  "license": "MIT",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jakerains/dreamhost-deployer"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^9.5.0",
+    "fs-extra": "^10.1.0",
+    "inquirer": "^8.2.5",
+    "ssh2": "^1.16.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

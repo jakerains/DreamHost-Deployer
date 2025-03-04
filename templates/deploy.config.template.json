@@ -1,0 +1,14 @@
+{
+  "host": "example.com",
+  "username": "your-username",
+  "remotePath": "/home/your-username/example.com",
+  "localPath": "./dist",
+  "privateKeyPath": "~/.ssh/id_rsa",
+  "targetFolder": "example.com",
+  "exclude": [
+    "node_modules",
+    ".git",
+    ".env",
+    ".DS_Store"
+  ]
+} 

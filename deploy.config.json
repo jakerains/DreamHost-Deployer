@@ -1,0 +1,14 @@
+{
+  "host": "vps18324.dreamhostps.com",
+  "username": "dh_t7eipp",
+  "remotePath": "/home/dh_t7eipp/dex.genaijake.com",
+  "privateKeyPath": "dex",
+  "port": 22,
+  "ignore": [
+    "node_modules",
+    ".git",
+    ".env",
+    "deploy.config.json",
+    "deploy.js"
+  ]
+} 
