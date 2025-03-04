@@ -3,7 +3,7 @@
 /**
  * DreamHost Deployer CLI
  * A command-line tool for deploying websites to DreamHost servers
- * Version 0.5.0 - Enhanced CLI with interactive menu and updated Node.js versions
+ * Version 0.5.2 - Enhanced CLI with interactive menu and improved Windows compatibility
  */
 
 const path = require('path');

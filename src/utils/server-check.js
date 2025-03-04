@@ -6,9 +6,9 @@
 const { execSync } = require('child_process');
 const chalk = require('chalk');
 const inquirer = require('inquirer');
-const setupNode = require('../commands/setup-node');
 const fs = require('fs');
 const path = require('path');
+const { Client } = require('ssh2'); // Add ssh2 client for cross-platform compatibility
 
 // Recommended versions
 const RECOMMENDED_NVM_VERSION = '0.40.1';
@@ -98,59 +98,45 @@ async function verifySSHConnection(config) {
     
     // Check if we have a password or need to ask for one
     let password = config.password;
-    let usePassword = false;
     
-    // Try SSH key authentication first
+    // Try SSH key authentication first using ssh2 library instead of command line
     try {
         console.log(chalk.cyan('Attempting SSH key authentication...'));
-        execSync(`ssh -o BatchMode=yes -o ConnectTimeout=10 ${config.username}@${config.host} "echo 'Connection successful'"`, { stdio: 'pipe' });
-        console.log(chalk.green('✅ SSH key authentication successful'));
+        
+        // Try to connect using SSH key
+        await new Promise((resolve, reject) => {
+            const conn = new Client();
+            
+            let authConfig = {
+                host: config.host,
+                username: config.username,
+                readyTimeout: 30000
+            };
+            
+            // Add private key if available
+            if (config.privateKeyPath && fs.existsSync(config.privateKeyPath)) {
+                try {
+                    authConfig.privateKey = fs.readFileSync(config.privateKeyPath);
+                } catch (err) {
+                    // If we can't read the key, just continue without it
+                    console.log(chalk.yellow(`⚠️ Could not read private key: ${err.message}`));
+                }
+            }
+            
+            conn.on('ready', () => {
+                console.log(chalk.green('✅ SSH key authentication successful'));
+                conn.end();
+                resolve(true);
+            }).on('error', (err) => {
+                reject(err);
+            }).connect(authConfig);
+        });
+        
         return true;
     } catch (error) {
-        console.log(chalk.yellow('⚠️ SSH key authentication failed. Checking available authentication methods...'));
+        console.log(chalk.yellow('⚠️ SSH key authentication failed. Trying password authentication...'));
         
-        // Check available authentication methods
-        try {
-            const authOutput = execSync(`ssh -v ${config.username}@${config.host} 2>&1 || true`, { stdio: 'pipe' }).toString();
-            
-            if (authOutput.includes('Authentications that can continue: publickey,password') || 
-                authOutput.includes('Authentications that can continue: password,publickey')) {
-                console.log(chalk.cyan('Server supports both key and password authentication.'));
-                usePassword = true;
-            } else if (authOutput.includes('Authentications that can continue: publickey')) {
-                console.log(chalk.yellow('⚠️ Server only supports key authentication. Password authentication is disabled.'));
-                console.log(chalk.yellow('⚠️ Please set up SSH keys for this server.'));
-                
-                // Ask if user wants to try setting up SSH keys
-                const { setupKeys } = await inquirer.prompt([
-                    {
-                        type: 'confirm',
-                        name: 'setupKeys',
-                        message: 'Would you like to set up SSH keys for this server?',
-                        default: true
-                    }
-                ]);
-                
-                if (setupKeys) {
-                    console.log(chalk.cyan('Please run "dreamhost-deployer setup-ssh" to set up SSH keys.'));
-                }
-                
-                return false;
-            } else if (authOutput.includes('Authentications that can continue: password')) {
-                console.log(chalk.cyan('Server only supports password authentication.'));
-                usePassword = true;
-            } else {
-                console.log(chalk.yellow('⚠️ Could not determine available authentication methods.'));
-                usePassword = true; // Try password as a fallback
-            }
-        } catch (error) {
-            console.log(chalk.yellow('⚠️ Could not determine available authentication methods.'));
-            usePassword = true; // Try password as a fallback
-        }
-    }
-    
-    // Try password authentication if needed
-    if (usePassword) {
+        // If we don't have a password, ask for one
         if (!password) {
             const { sshPassword } = await inquirer.prompt([
                 {
@@ -180,85 +166,46 @@ async function verifySSHConnection(config) {
             }
         }
         
+        // Try password authentication using ssh2 library
         try {
             console.log(chalk.cyan('Attempting password authentication...'));
             
-            // Create a temporary expect script for password authentication
-            const expectScript = `
-            spawn ssh -o ConnectTimeout=10 ${config.username}@${config.host} "echo 'Connection successful'"
-            expect {
-                "password:" {
-                    send "${password}\\r"
-                    expect {
-                        "Connection successful" {
-                            exit 0
-                        }
-                        "Permission denied" {
-                            exit 1
-                        }
-                        timeout {
-                            exit 2
-                        }
-                    }
-                }
-                "Permission denied" {
-                    exit 1
-                }
-                timeout {
-                    exit 2
-                }
-            }
-            `;
+            await new Promise((resolve, reject) => {
+                const conn = new Client();
+                
+                conn.on('ready', () => {
+                    console.log(chalk.green('✅ Password authentication successful'));
+                    conn.end();
+                    resolve(true);
+                }).on('error', (err) => {
+                    reject(err);
+                }).connect({
+                    host: config.host,
+                    username: config.username,
+                    password: password,
+                    readyTimeout: 30000
+                });
+            });
             
-            const expectScriptPath = path.join(require('os').tmpdir(), 'ssh_expect_test.exp');
-            fs.writeFileSync(expectScriptPath, expectScript);
-            fs.chmodSync(expectScriptPath, '700');
-            
-            try {
-                execSync(`expect ${expectScriptPath}`, { stdio: 'pipe' });
-                console.log(chalk.green('✅ Password authentication successful'));
-                
-                // Clean up
-                fs.unlinkSync(expectScriptPath);
-                
-                return true;
-            } catch (error) {
-                console.error(chalk.red(`❌ Password authentication failed: ${error.message}`));
-                
-                // Clean up
-                fs.unlinkSync(expectScriptPath);
-                
-                // Try sshpass as a fallback
-                try {
-                    console.log(chalk.cyan('Attempting authentication with sshpass...'));
-                    execSync(`sshpass -p "${password}" ssh -o ConnectTimeout=10 ${config.username}@${config.host} "echo 'Connection successful'"`, { stdio: 'pipe' });
-                    console.log(chalk.green('✅ Authentication with sshpass successful'));
-                    return true;
-                } catch (sshpassError) {
-                    console.error(chalk.red(`❌ Authentication with sshpass failed: ${sshpassError.message}`));
-                    
-                    // Provide troubleshooting guidance
-                    console.log(chalk.yellow('\n⚠️ SSH Authentication Troubleshooting:'));
-                    console.log(chalk.cyan('1. Verify your username and host are correct'));
-                    console.log(chalk.cyan('2. Check if password authentication is enabled on the server'));
-                    console.log(chalk.cyan('3. Ensure your SSH key permissions are correct (if using key authentication)'));
-                    console.log(chalk.cyan('   - ~/.ssh directory: 700 (drwx------)'));
-                    console.log(chalk.cyan('   - SSH private key: 600 (-rw-------)'));
-                    console.log(chalk.cyan('   - SSH public key: 644 (-rw-r--r--)'));
-                    console.log(chalk.cyan('   - authorized_keys: 600 (-rw-------)'));
-                    console.log(chalk.cyan('4. Try connecting manually with verbose output:'));
-                    console.log(chalk.cyan(`   ssh -v ${config.username}@${config.host}`));
-                    
-                    return false;
-                }
-            }
+            return true;
         } catch (error) {
-            console.error(chalk.red(`❌ Error during password authentication: ${error.message}`));
+            console.error(chalk.red(`❌ Password authentication failed: ${error.message}`));
+            
+            // Provide troubleshooting guidance
+            console.log(chalk.yellow('\n⚠️ SSH Authentication Troubleshooting:'));
+            console.log(chalk.cyan('1. Verify your username and host are correct'));
+            console.log(chalk.cyan('2. Check if password authentication is enabled on the server'));
+            console.log(chalk.cyan('3. Ensure your SSH key permissions are correct (if using key authentication)'));
+            console.log(chalk.cyan('   - ~/.ssh directory: 700 (drwx------)'));
+            console.log(chalk.cyan('   - SSH private key: 600 (-rw-------)'));
+            console.log(chalk.cyan('   - SSH public key: 644 (-rw-r--r--)'));
+            console.log(chalk.cyan('   - authorized_keys: 600 (-rw-------)'));
+            console.log(chalk.cyan('4. Try connecting manually with verbose output:'));
+            console.log(chalk.cyan(`   ssh -v ${config.username}@${config.host}`));
+            
             return false;
         }
     }
-    
-    return false;
 }
 
 /**
@@ -307,6 +254,8 @@ async function checkAndSetupServerIfNeeded(config) {
         ]);
         
         if (shouldSetup) {
+            // Use dynamic require to avoid circular dependency
+            const setupNode = require('../commands/setup-node');
             await setupNode.run(config);
         } else {
             console.log(chalk.yellow('\n⚠️ Skipping server setup. You can run it later with:'));

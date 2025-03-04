@@ -2,6 +2,27 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.5.2] - 2025-03-10
+
+### Fixed
+- Improved Windows compatibility for SSH connections
+  - Replaced command-line SSH tools with native Node.js ssh2 library
+  - Removed dependency on expect and sshpass commands
+  - Fixed "verifySSHConnection is not a function" error
+  - Enhanced SSH authentication to work reliably on Windows
+- Enhanced error handling for SSH connections
+  - Better error messages for connection failures
+  - More reliable key and password authentication
+  - Improved troubleshooting guidance
+
+## [0.5.1] - 2025-03-09
+
+### Fixed
+- Fixed circular dependency warning between server-check.js and setup-node.js modules
+- Resolved "Accessing non-existent property 'verifySSHConnection'" warning in the interactive CLI menu
+- Improved module structure to prevent circular references
+- Enhanced code organization for better maintainability
+
 ## [0.5.0] - 2025-03-08
 
 ### Added
