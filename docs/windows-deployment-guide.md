@@ -100,6 +100,8 @@ For users who prefer to have rsync directly on Windows.
 - Solution: Either run from within WSL terminal OR choose the SCP alternative
 
 ### SSH key issues
+- The tool now generates Ed25519 keys instead of RSA keys for better compatibility with DreamHost
+- If you're having issues with SSH authentication, try regenerating your keys with `dreamhost-deployer setup-ssh`
 - Make sure your SSH key is properly set up in both Windows and WSL
 - For WSL, you may need to copy your Windows SSH key to the WSL ~/.ssh directory
 

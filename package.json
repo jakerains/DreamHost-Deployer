@@ -30,7 +30,7 @@
     "commander": "^9.5.0",
     "fs-extra": "^10.1.0",
     "inquirer": "^8.2.5",
-    "minimatch": "^10.0.1",
+    "minimatch": "^5.1.0",
     "ssh2": "^1.16.0"
   },
   "engines": {

@@ -222,10 +222,39 @@ async function deployWithScp(config, localPath, remotePath) {
                 const relativePath = path.relative(localPath, fullPath);
                 
                 // Check if file/directory should be excluded
-                if (excludePatterns.some(pattern => 
-                    minimatch(relativePath, pattern) || 
-                    relativePath.startsWith(pattern) ||
-                    file === pattern)) {
+                let shouldExclude = false;
+                
+                // Check each exclude pattern
+                for (const pattern of excludePatterns) {
+                    // Direct match with filename
+                    if (file === pattern) {
+                        shouldExclude = true;
+                        break;
+                    }
+                    
+                    // Path starts with pattern (for directories)
+                    if (relativePath.startsWith(pattern)) {
+                        shouldExclude = true;
+                        break;
+                    }
+                    
+                    // Use minimatch for glob pattern matching
+                    try {
+                        if (minimatch(relativePath, pattern)) {
+                            shouldExclude = true;
+                            break;
+                        }
+                    } catch (err) {
+                        // If minimatch fails, fall back to simple string comparison
+                        console.log(chalk.yellow(`Warning: Pattern matching failed for ${pattern}, using simple comparison`));
+                        if (relativePath.includes(pattern)) {
+                            shouldExclude = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (shouldExclude) {
                     return;
                 }
                 

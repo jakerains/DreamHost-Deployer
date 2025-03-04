@@ -5,6 +5,10 @@ All notable changes to the DreamHost Deployer project will be documented in this
 ## [Unreleased]
 
 ### Added
+- Switched from RSA to Ed25519 SSH keys for better security and compatibility
+  - Ed25519 keys are more modern and widely supported by hosting providers
+  - Smaller key size with equivalent or better security than RSA
+  - Better performance for SSH operations
 - Added Windows compatibility improvements
   - Detect when rsync is not available on Windows systems
   - Added alternative SCP-based deployment method for Windows
@@ -46,3 +50,8 @@ All notable changes to the DreamHost Deployer project will be documented in this
   - Implemented proper prompt handling with inquirer's input type
   - Added confirmation prompts using inquirer's confirm type
   - Removed manual input event handling that was causing double keystrokes 
+- Fixed "minimatch is not a function" error during SCP deployment on Windows
+  - Updated minimatch package to version 5.1.0
+  - Improved error handling in file exclusion logic
+  - Added fallback to simple string comparison if minimatch fails
+  - Enhanced robustness of the SCP deployment method 
