@@ -2,6 +2,61 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.4.5] - 2025-03-06
+
+### Added
+- Added server environment check feature
+  - Automatically checks for NVM and Node.js on the server
+  - Verifies versions against recommended versions (NVM 0.40.1, Node.js 20.18.0)
+  - Offers to set up or update NVM and Node.js if needed
+  - Seamless integration with the deployment process
+
+### Improved
+- Enhanced setup-node.js command
+  - Added support for password authentication
+  - Better error handling for SSH connection issues
+  - Improved version comparison logic
+  - More detailed progress reporting
+
+## [0.4.4] - 2025-03-05
+
+### Added
+- Added simplified cross-platform deployment method using native SSH/SCP commands
+  - Standardized on SCP/SFTP for all platforms (Windows, macOS, Linux)
+  - Eliminated dependency on rsync for better cross-platform compatibility
+  - Leveraged built-in SSH client available on modern platforms (Windows 10+, macOS, Linux)
+  - Simplified authentication with focus on password-based authentication
+  - Improved file transfer reliability with native commands
+
+### Improved
+- Streamlined SSH setup process
+  - Simplified authentication options with clear recommendations
+  - Enhanced password authentication as the primary method
+  - Improved SSH key setup instructions for advanced users
+  - Better testing of SSH connections during setup
+  - Clearer guidance for manual SSH key installation on server
+- Enhanced deployment process
+  - More reliable file transfers using native commands
+  - Better error handling during file transfers
+  - Improved progress reporting during deployment
+  - Simplified configuration with sensible defaults
+
+## [0.4.3] - 2025-03-04
+
+### Added
+- Added password authentication support for SSH and SCP operations
+  - Interactive password prompt during deployment
+  - Option to save password in configuration (not recommended)
+  - Automatic fallback to password authentication if key authentication fails
+  - Support for both sshpass and expect-based password handling
+  - Password testing during SSH setup
+
+### Improved
+- Enhanced error handling for SSH authentication issues
+  - Better error messages for authentication failures
+  - Automatic retry with password if key authentication fails
+  - Detailed guidance for troubleshooting connection issues
+
 ## [0.4.1] - 2025-03-04
 
 ### Added

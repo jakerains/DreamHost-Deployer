@@ -1,83 +1,104 @@
-# Publishing Steps for DreamHost Deployer v0.4.1
+# Publishing Guide for DreamHost Deployer v0.4.5
 
-This guide outlines the steps to publish the latest version of DreamHost Deployer with SSH key and deployment fixes.
+This guide outlines the steps for publishing the DreamHost Deployer package to npm.
 
-## Pre-publishing Checklist
+## Pre-Publishing Checklist
 
-1. ✅ Fixed "minimatch is not a function" error
-   - Updated minimatch package to version 5.1.0
-   - Improved error handling in file exclusion logic
+Before publishing, ensure the following:
 
-2. ✅ Added automatic Ed25519 SSH key detection
-   - Code now checks for both RSA and Ed25519 keys
-   - Prioritizes Ed25519 keys when available
+- [x] Version number updated to 0.4.5 in package.json
+- [x] CHANGELOG.md updated with all new features and improvements
+- [x] All code changes tested and working correctly
+- [x] Documentation updated to reflect new features and changes
+- [x] Release notes created in docs/v0.4.5-release-notes.md
 
-3. ✅ Added new `fix-ssh-key` command
-   - Interactive tool to diagnose and fix SSH key issues
-   - Options to generate new Ed25519 keys or use existing ones
+### Key Features in v0.4.5
 
-4. ✅ Improved error handling
-   - Better error messages for SSH and SCP operations
-   - Detailed reporting for failed directory creation and file transfers
-
-5. ✅ Updated documentation
-   - CHANGELOG.md updated with all fixes
-   - project-map.md updated to reflect new components
+- **Server Environment Check**: Automatically checks for NVM and Node.js on the server
+- **Version Verification**: Compares installed versions against recommended versions
+- **Interactive Setup**: Offers to set up or update NVM and Node.js if needed
+- **Enhanced Node.js Setup**: Added password authentication support and better error handling
 
 ## Publishing Steps
 
-1. **Verify package contents**
-   ```bash
+1. **Verify package contents**:
+   ```
    npm pack
    ```
-   This will create a tarball file that you can inspect to ensure all necessary files are included.
+   This creates a tarball that you can inspect to ensure all necessary files are included.
 
-2. **Login to npm (if not already logged in)**
-   ```bash
+2. **Log in to npm** (if not already logged in):
+   ```
    npm login
    ```
 
-3. **Publish the package**
-   ```bash
+3. **Publish the package**:
+   ```
    npm publish
    ```
 
-4. **Verify the published package**
-   ```bash
+4. **Verify the published package**:
+   ```
    npm view dreamhost-deployer
    ```
+   Check that the version is 0.4.5 and all information is correct.
 
 ## Testing on Target System
 
-After publishing, you can test the package on the target system with:
+After publishing, test the package on a target system:
 
-```bash
-# Update to the latest version
-npm install -g dreamhost-deployer@latest
+1. **Install the package**:
+   ```
+   npm install -g dreamhost-deployer@latest
+   ```
 
-# Check the installed version
-dreamhost-deployer --version
+2. **Verify the version**:
+   ```
+   dreamhost-deployer --version
+   ```
+   Should output 0.4.5
 
-# Fix SSH key issues
-dreamhost-deployer fix-ssh-key
+3. **Set up SSH with password authentication**:
+   ```
+   dreamhost-deployer setup-ssh
+   ```
+   Choose password authentication when prompted.
 
-# Try deploying again
-dreamhost-deployer deploy
-```
+4. **Deploy using the new method**:
+   ```
+   dreamhost-deployer deploy
+   ```
+   Verify that the server environment check runs before deployment.
 
 ## Troubleshooting
 
-If you encounter issues after publishing:
+### Server Environment Check Issues
+- If the server environment check fails, try running the setup-node command manually:
+  ```
+  dreamhost-deployer setup-node
+  ```
+- Check SSH connectivity to ensure the tool can connect to the server
+- Verify that the user has sufficient permissions to install NVM and Node.js
 
-1. **SSH Key Issues**
-   - Run `dreamhost-deployer fix-ssh-key` to diagnose and fix SSH key problems
-   - Ensure the key is properly added to DreamHost panel
+### Authentication Issues
+- Ensure the username and host are correct in the configuration
+- Try running the SSH command manually to verify connectivity:
+  ```
+  ssh username@host
+  ```
 
-2. **Deployment Issues**
-   - Check the error messages for specific details
-   - Verify your configuration in `deploy.config.json`
-   - Try running with verbose output: `DEBUG=* dreamhost-deployer deploy`
+### Deployment Issues
+- Run with verbose output:
+  ```
+  DEBUG=* dreamhost-deployer deploy
+  ```
+- Check if the remote directory exists and has correct permissions
+- Verify that the local files exist and are readable
 
-3. **Package Issues**
-   - If the package is missing files, check your `.npmignore` file
-   - Ensure all dependencies are correctly listed in `package.json` 
+### Package Issues
+- If the package is not working correctly, try reinstalling:
+  ```
+  npm uninstall -g dreamhost-deployer
+  npm install -g dreamhost-deployer@latest
+  ```
+- Check for any error messages during installation 

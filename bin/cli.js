@@ -3,6 +3,7 @@
 /**
  * DreamHost Deployer CLI
  * A command-line tool for deploying websites to DreamHost servers
+ * Version 0.4.4 - Simplified cross-platform deployment
  */
 
 const path = require('path');
@@ -22,11 +23,9 @@ program
 // Deploy command
 program
   .command('deploy')
-  .description('Deploy your website to DreamHost')
-  .option('-c, --config <path>', 'Path to config file', 'deploy.config.json')
-  .action((options) => {
-    const configPath = path.resolve(process.cwd(), options.config);
-    deploy.runDeploy(configPath);
+  .description('Deploy your website to DreamHost using native SSH/SCP')
+  .action(() => {
+    deploy.deploy();
   });
 
 // Setup SSH command

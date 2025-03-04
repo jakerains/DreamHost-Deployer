@@ -13,7 +13,7 @@ const chalk = require('chalk'); // Using chalk for better formatting
 async function setupNodeOnServer(config) {
     console.log(chalk.bold.blue('\n📦 Setting up NVM and Node.js on DreamHost server...\n'));
     
-    if (!config || !config.host || !config.username || !config.privateKeyPath) {
+    if (!config || !config.host || !config.username) {
         console.error(chalk.bold.red('❌ Invalid configuration. Missing required fields.'));
         process.exit(1);
     }
@@ -61,6 +61,63 @@ async function setupNodeOnServer(config) {
     // Setup SSH connection
     const conn = new Client();
     
+    // Determine authentication method
+    let authConfig = {
+        host: config.host,
+        username: config.username,
+        readyTimeout: 30000
+    };
+    
+    // Check if we have a password or need to ask for one
+    let password = config.password;
+    if (!config.privateKeyPath && !password) {
+        const { usePassword } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'usePassword',
+                message: 'No SSH key found. Would you like to use password authentication?',
+                default: true
+            }
+        ]);
+        
+        if (usePassword) {
+            const { sshPassword } = await inquirer.prompt([
+                {
+                    type: 'password',
+                    name: 'sshPassword',
+                    message: 'Enter your SSH password:',
+                    mask: '*'
+                }
+            ]);
+            password = sshPassword;
+        } else {
+            console.error(chalk.red('❌ No authentication method available.'));
+            process.exit(1);
+        }
+    }
+    
+    // Set authentication method
+    if (password) {
+        authConfig.password = password;
+    } else if (config.privateKeyPath) {
+        try {
+            authConfig.privateKey = fs.readFileSync(config.privateKeyPath);
+        } catch (error) {
+            console.error(chalk.red(`❌ Could not read private key: ${error.message}`));
+            
+            // Fall back to password
+            const { fallbackPassword } = await inquirer.prompt([
+                {
+                    type: 'password',
+                    name: 'fallbackPassword',
+                    message: 'Enter your SSH password instead:',
+                    mask: '*'
+                }
+            ]);
+            authConfig.password = fallbackPassword;
+        }
+    }
+    
     // Connect to the server
     try {
         await new Promise((resolve, reject) => {
@@ -69,12 +126,7 @@ async function setupNodeOnServer(config) {
                 resolve();
             }).on('error', (err) => {
                 reject(err);
-            }).connect({
-                host: config.host,
-                username: config.username,
-                privateKey: fs.readFileSync(config.privateKeyPath),
-                readyTimeout: 30000
-            });
+            }).connect(authConfig);
         });
         
         console.log(chalk.bold.blue('\n🚀 Installing NVM and Node.js...\n'));
@@ -232,20 +284,29 @@ function executeCommand(conn, command) {
 }
 
 // Main function
-async function run() {
+async function run(providedConfig = null) {
     try {
         console.log(chalk.bold.blue('\n🚀 DreamHost Node.js Setup Wizard\n'));
         
-        // Load configuration
-        const configPath = path.resolve(process.cwd(), 'deploy.config.json');
+        let config;
         
-        if (!fs.existsSync(configPath)) {
-            console.error(chalk.bold.red('❌ Configuration file not found!'));
-            console.log(chalk.yellow('Please run \'dreamhost-deployer init\' to create a configuration file.'));
-            process.exit(1);
+        // Use provided config or load from file
+        if (providedConfig) {
+            config = providedConfig;
+            console.log(chalk.cyan('Using provided configuration'));
+        } else {
+            // Load configuration
+            const configPath = path.resolve(process.cwd(), 'deploy.config.json');
+            
+            if (!fs.existsSync(configPath)) {
+                console.error(chalk.bold.red('❌ Configuration file not found!'));
+                console.log(chalk.yellow('Please run \'dreamhost-deployer init\' to create a configuration file.'));
+                process.exit(1);
+            }
+            
+            config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         }
         
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         await setupNodeOnServer(config);
         
     } catch (error) {

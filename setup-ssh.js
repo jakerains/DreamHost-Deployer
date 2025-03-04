@@ -192,52 +192,141 @@ async function setupSSH() {
             config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         }
         
-        // Generate SSH key if needed
-        if (!config.privateKeyPath) {
-            const defaultKeyPath = path.join(os.homedir(), '.ssh', 'id_rsa');
+        // Ask about authentication method
+        const { authMethod } = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'authMethod',
+                message: 'Choose your preferred authentication method:',
+                choices: [
+                    { name: 'Password Authentication (Recommended, works everywhere)', value: 'password' },
+                    { name: 'SSH Key Authentication (Advanced)', value: 'key' }
+                ],
+                default: 'password'
+            }
+        ]);
+        
+        if (authMethod === 'password') {
+            console.log(chalk.blue('\n🔑 Setting up password authentication...'));
+            console.log(chalk.cyan('With password authentication, you\'ll be prompted for your password during deployment.'));
             
-            const { keyPath } = await inquirer.prompt([
+            // Ask if user wants to test the connection now
+            const { testConnection } = await inquirer.prompt([
                 {
-                    type: 'input',
-                    name: 'keyPath',
-                    message: `Enter private key path (default: ${defaultKeyPath}):`,
-                    default: defaultKeyPath
+                    type: 'confirm',
+                    name: 'testConnection',
+                    message: 'Would you like to test your SSH connection now?',
+                    default: true
                 }
             ]);
             
-            config.privateKeyPath = keyPath;
+            if (testConnection) {
+                console.log(chalk.blue('🔄 Testing SSH connection...'));
+                
+                try {
+                    // Test SSH connection
+                    console.log(chalk.yellow('You will be prompted for your password.'));
+                    console.log(chalk.yellow('This is normal and expected with password authentication.'));
+                    
+                    const sshCmd = `ssh ${config.username}@${config.host} "echo 'Connection successful'"`;
+                    execSync(sshCmd, { stdio: 'inherit' });
+                    
+                    console.log(chalk.green('✅ SSH connection successful!'));
+                } catch (error) {
+                    console.error(chalk.red(`❌ SSH connection failed: ${error.message}`));
+                    console.log(chalk.yellow('⚠️ Please check your username and host and try again.'));
+                    console.log(chalk.yellow('⚠️ Make sure you have SSH access to your DreamHost server.'));
+                }
+            }
             
-            // Update config
-            fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-        }
-        
-        // Generate key if it doesn't exist
-        if (!fs.existsSync(config.privateKeyPath)) {
-            await generateSSHKey(config.privateKeyPath);
-        }
-        
-        // Display public key
-        const publicKeyPath = `${config.privateKeyPath}.pub`;
-        if (fs.existsSync(publicKeyPath)) {
-            const publicKey = fs.readFileSync(publicKeyPath, 'utf8');
-            console.log(chalk.blue('\n📋 Your public SSH key:'));
-            console.log(chalk.cyan('='.repeat(60)));
-            console.log(publicKey);
-            console.log(chalk.cyan('='.repeat(60)));
-            console.log(chalk.yellow('\n⚠️ Add this key to your DreamHost account at:'));
-            console.log(chalk.cyan('https://panel.dreamhost.com/index.cgi?tree=users.ssh&'));
+            // Ask if user wants to save a password for non-interactive use
+            const { savePassword } = await inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'savePassword',
+                    message: 'Would you like to save your password for non-interactive use? (Not recommended for security reasons)',
+                    default: false
+                }
+            ]);
             
-            console.log(chalk.bold.blue('\n📝 Next Steps:'));
-            console.log(chalk.cyan('1. Copy the public key shown above'));
-            console.log(chalk.cyan('2. Log in to your DreamHost panel'));
-            console.log(chalk.cyan('3. Navigate to Users > Manage Users > SSH Keys'));
-            console.log(chalk.cyan('4. Add the public key to your user account'));
-            console.log(chalk.cyan('5. Wait a few minutes for the key to propagate'));
+            if (savePassword) {
+                const { password } = await inquirer.prompt([
+                    {
+                        type: 'password',
+                        name: 'password',
+                        message: 'Enter your SSH password:',
+                        mask: '*'
+                    }
+                ]);
+                
+                config.password = password;
+                fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+                console.log(chalk.green('✅ Password saved to configuration.'));
+                console.log(chalk.yellow('⚠️ Note: Storing passwords in plain text is not secure.'));
+                console.log(chalk.yellow('⚠️ Consider using SSH keys for better security in production environments.'));
+            } else {
+                // Remove password if it exists
+                if (config.password) {
+                    delete config.password;
+                    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+                }
+                console.log(chalk.green('✅ You will be prompted for your password during deployment.'));
+            }
         } else {
-            console.error(chalk.red(`❌ Public key not found at ${publicKeyPath}`));
+            // SSH key authentication
+            if (!config.privateKeyPath) {
+                const defaultKeyPath = path.join(os.homedir(), '.ssh', 'id_ed25519');
+                
+                const { keyPath } = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'keyPath',
+                        message: `Enter private key path (default: ${defaultKeyPath}):`,
+                        default: defaultKeyPath
+                    }
+                ]);
+                
+                config.privateKeyPath = keyPath;
+                
+                // Update config
+                fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+            }
+            
+            // Generate key if it doesn't exist
+            if (!fs.existsSync(config.privateKeyPath)) {
+                await generateSSHKey(config.privateKeyPath);
+            }
+            
+            // Display public key
+            const publicKeyPath = `${config.privateKeyPath}.pub`;
+            if (fs.existsSync(publicKeyPath)) {
+                const publicKey = fs.readFileSync(publicKeyPath, 'utf8');
+                console.log(chalk.blue('\n📋 Your public SSH key:'));
+                console.log(chalk.cyan('='.repeat(60)));
+                console.log(publicKey);
+                console.log(chalk.cyan('='.repeat(60)));
+                
+                console.log(chalk.yellow('\n⚠️ Note: DreamHost may not support adding SSH keys through their panel.'));
+                console.log(chalk.yellow('⚠️ You may need to manually add the key to your server\'s authorized_keys file.'));
+                
+                console.log(chalk.bold.blue('\n📝 To manually add your key to the server:'));
+                console.log(chalk.cyan('1. SSH into your server using password authentication:'));
+                console.log(chalk.cyan(`   ssh ${config.username}@${config.host}`));
+                console.log(chalk.cyan('2. Create the .ssh directory if it doesn\'t exist:'));
+                console.log(chalk.cyan('   mkdir -p ~/.ssh'));
+                console.log(chalk.cyan('3. Create or append to the authorized_keys file:'));
+                console.log(chalk.cyan('   echo "YOUR_PUBLIC_KEY" >> ~/.ssh/authorized_keys'));
+                console.log(chalk.cyan('   (Replace YOUR_PUBLIC_KEY with the key shown above)'));
+                console.log(chalk.cyan('4. Set proper permissions:'));
+                console.log(chalk.cyan('   chmod 700 ~/.ssh'));
+                console.log(chalk.cyan('   chmod 600 ~/.ssh/authorized_keys'));
+            } else {
+                console.error(chalk.red(`❌ Public key not found at ${publicKeyPath}`));
+            }
         }
         
         console.log(chalk.green('\n✅ SSH setup completed!'));
+        console.log(chalk.cyan('You can now run "dreamhost-deployer deploy" to deploy your website.'));
     } catch (error) {
         console.error(chalk.red(`\n❌ SSH setup failed: ${error.message}`));
         process.exit(1);

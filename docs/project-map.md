@@ -10,6 +10,7 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
   - `commands/` - Command implementations
     - `setup-node.js` - NVM and Node.js setup on DreamHost server
   - `utils/` - Utility functions
+    - `server-check.js` - Utility for checking server environment (NVM and Node.js versions)
 - `templates/` - Configuration templates
   - `deploy.config.template.json` - Template for deployment configuration
 - `docs/` - Documentation
@@ -35,20 +36,30 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 - Reliable input handling without keystroke duplication issues
 
 ### Deployment Method
-- Using `rsync` over SSH for efficient file transfers on Unix/Linux/macOS
-- Alternative SCP-based deployment for Windows systems without rsync
+- Simplified cross-platform deployment using native SSH/SCP commands
+  - Standardized on SCP/SFTP for all platforms (Windows, macOS, Linux)
+  - Eliminated dependency on rsync for better cross-platform compatibility
+  - Leveraged built-in SSH client available on modern platforms (Windows 10+, macOS, Linux)
+  - Improved file transfer reliability with native commands
   - Robust file exclusion pattern handling with minimatch v5.1.0
   - Fallback mechanisms for pattern matching to ensure reliability
-  - Error handling for file exclusion logic
-  - Automatic detection and prioritization of Ed25519 SSH keys
   - Detailed error reporting for SSH and SCP operations
   - Graceful failure handling with informative error messages
 - Cross-platform compatibility with Windows, macOS, and Linux
-- Windows-specific detection and handling
-- WSL integration approaches:
-  - Option to run directly from WSL terminal (recommended for best performance)
-  - Fallback to SCP when running from Windows CMD/PowerShell even with WSL installed
+  - Unified deployment approach across all platforms
+  - No special handling required for different operating systems
   - Clear guidance on running the tool in the appropriate environment
+
+### Authentication Methods
+- Simplified authentication with focus on password-based authentication
+  - Password authentication as the recommended method for all platforms
+  - Interactive password prompts with masked input
+  - Option to save password in configuration (not recommended for security)
+  - SSH key authentication still available for advanced users
+  - SSH key generation and configuration (Ed25519 preferred)
+  - Detailed guidance for manual SSH key installation on server
+  - Connection testing during setup
+  - Secure handling of credentials
 
 ### Configuration Management
 - JSON-based configuration for easy editing and parsing
@@ -57,10 +68,15 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 - Web server type selection (Apache or Nginx)
 
 ### Server Environment Setup
+- Automatic server environment check before deployment
+  - Verification of NVM and Node.js versions
+  - Comparison against recommended versions (NVM 0.40.1, Node.js 20.18.0)
+  - Interactive prompt to set up or update if needed
 - NVM and Node.js installation on DreamHost server
-- Support for custom Node.js versions
-- Automatic configuration of environment variables
-- Server-specific configuration for Apache and Nginx
+  - Support for custom Node.js versions
+  - Automatic configuration of environment variables
+  - Server-specific configuration for Apache and Nginx
+  - Support for both SSH key and password authentication
 
 ### User Interface
 - User-friendly CLI with clear instructions
