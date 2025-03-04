@@ -1,45 +1,71 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
-const path = require('path');
+/**
+ * DreamHost Deployer Test Script
+ * This script verifies that the package is correctly set up
+ */
+
 const fs = require('fs');
+const path = require('path');
+const chalk = require('chalk');
 
-console.log(chalk.green('DreamHost Deployer - Test'));
-console.log(chalk.blue('Checking package configuration...'));
+console.log(chalk.bold.blue('\n🧪 DreamHost Deployer Test Script\n'));
 
-// Check if package.json exists
-if (fs.existsSync(path.join(__dirname, 'package.json'))) {
-    console.log(chalk.green('✓ package.json found'));
-} else {
-    console.log(chalk.red('✗ package.json not found'));
+// Check for required files
+const requiredFiles = [
+    'deploy.js',
+    'setup-ssh.js',
+    'fix-ssh-key.js',
+    'bin/cli.js',
+    'package.json'
+];
+
+let allFilesExist = true;
+
+console.log(chalk.cyan('Checking for required files:'));
+for (const file of requiredFiles) {
+    if (fs.existsSync(file)) {
+        console.log(chalk.green(`✅ ${file} exists`));
+    } else {
+        console.log(chalk.red(`❌ ${file} does not exist`));
+        allFilesExist = false;
+    }
 }
 
-// Check if bin directory exists
-if (fs.existsSync(path.join(__dirname, 'bin'))) {
-    console.log(chalk.green('✓ bin directory found'));
-} else {
-    console.log(chalk.red('✗ bin directory not found'));
+// Check package.json
+const pkg = require('./package.json');
+console.log(chalk.cyan('\nPackage information:'));
+console.log(chalk.cyan(`  • Name: ${chalk.white(pkg.name)}`));
+console.log(chalk.cyan(`  • Version: ${chalk.white(pkg.version)}`));
+console.log(chalk.cyan(`  • Description: ${chalk.white(pkg.description)}`));
+
+// Check dependencies
+console.log(chalk.cyan('\nChecking dependencies:'));
+const requiredDeps = ['chalk', 'commander', 'inquirer', 'minimatch', 'ssh2'];
+let allDepsExist = true;
+
+for (const dep of requiredDeps) {
+    if (pkg.dependencies && pkg.dependencies[dep]) {
+        console.log(chalk.green(`✅ ${dep} (${pkg.dependencies[dep]})`));
+    } else {
+        console.log(chalk.red(`❌ ${dep} is missing`));
+        allDepsExist = false;
+    }
 }
 
-// Check if CLI file exists
-if (fs.existsSync(path.join(__dirname, 'bin', 'cli.js'))) {
-    console.log(chalk.green('✓ CLI file found'));
+// Check bin entry
+console.log(chalk.cyan('\nChecking bin entry:'));
+if (pkg.bin && pkg.bin['dreamhost-deployer']) {
+    console.log(chalk.green(`✅ bin entry exists: ${pkg.bin['dreamhost-deployer']}`));
 } else {
-    console.log(chalk.red('✗ CLI file not found'));
+    console.log(chalk.red('❌ bin entry is missing'));
 }
 
-// Check if templates directory exists
-if (fs.existsSync(path.join(__dirname, 'templates'))) {
-    console.log(chalk.green('✓ templates directory found'));
+// Final result
+console.log('\n');
+if (allFilesExist && allDepsExist && pkg.bin && pkg.bin['dreamhost-deployer']) {
+    console.log(chalk.green.bold('✅ All tests passed! The package is ready for publishing.'));
 } else {
-    console.log(chalk.red('✗ templates directory not found'));
+    console.log(chalk.red.bold('❌ Some tests failed. Please fix the issues before publishing.'));
 }
-
-// Check if template file exists
-if (fs.existsSync(path.join(__dirname, 'templates', 'deploy.config.template.json'))) {
-    console.log(chalk.green('✓ template file found'));
-} else {
-    console.log(chalk.red('✗ template file not found'));
-}
-
-console.log(chalk.blue('All tests completed.')); 
+console.log('\n'); 

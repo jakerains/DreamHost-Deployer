@@ -21,6 +21,7 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
 ## Core Files
 - `deploy.js` - Main deployment logic
 - `setup-ssh.js` - SSH setup and configuration logic
+- `fix-ssh-key.js` - Tool to fix SSH key issues and migrate to Ed25519
 - `test.js` - Basic test script to verify package configuration
 - `package.json` - Project metadata and dependencies
 - `deploy.config.json` - User configuration file for deployment settings
@@ -39,6 +40,9 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
   - Robust file exclusion pattern handling with minimatch v5.1.0
   - Fallback mechanisms for pattern matching to ensure reliability
   - Error handling for file exclusion logic
+  - Automatic detection and prioritization of Ed25519 SSH keys
+  - Detailed error reporting for SSH and SCP operations
+  - Graceful failure handling with informative error messages
 - Cross-platform compatibility with Windows, macOS, and Linux
 - Windows-specific detection and handling
 - WSL integration approaches:

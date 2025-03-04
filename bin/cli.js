@@ -10,6 +10,7 @@ const { program } = require('commander');
 const deploy = require('../deploy');
 const setupSsh = require('../setup-ssh');
 const setupNode = require('../src/commands/setup-node');
+const fixSshKey = require('../fix-ssh-key');
 const pkg = require('../package.json');
 
 // Set up the CLI program
@@ -50,6 +51,14 @@ program
   .description('Set up NVM and Node.js on your DreamHost server')
   .action(() => {
     setupNode.run();
+  });
+
+// Fix SSH Key command
+program
+  .command('fix-ssh-key')
+  .description('Fix SSH key issues by switching to Ed25519 keys')
+  .action(() => {
+    fixSshKey.run();
   });
 
 // Parse command line arguments

@@ -1,6 +1,6 @@
 {
   "name": "dreamhost-deployer",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A CLI tool for deploying websites to DreamHost servers via SSH",
   "main": "deploy.js",
   "bin": {
@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "node test.js",
-    "setup-ssh": "node setup-ssh.js"
+    "setup-ssh": "node setup-ssh.js",
+    "fix-ssh-key": "node fix-ssh-key.js"
   },
   "keywords": [
     "dreamhost",
@@ -35,5 +36,16 @@
   },
   "engines": {
     "node": ">=14.0.0"
-  }
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "deploy.js",
+    "setup-ssh.js",
+    "fix-ssh-key.js",
+    "test.js",
+    "README.md",
+    "LICENSE"
+  ]
 }

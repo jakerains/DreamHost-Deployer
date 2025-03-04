@@ -284,23 +284,53 @@ async function deployWithScp(config, localPath, remotePath) {
         
         // Create each directory on remote server
         for (const dir of directories) {
-            const mkdirCmd = `ssh -i "${config.privateKeyPath}" ${config.username}@${config.host} "mkdir -p ${remotePath}/${dir}"`;
-            execSync(mkdirCmd, { stdio: 'ignore' });
+            // Check if Ed25519 key exists and use it instead of RSA if available
+            let keyPath = config.privateKeyPath;
+            const ed25519KeyPath = path.join(path.dirname(config.privateKeyPath), 'id_ed25519');
+            
+            if (fs.existsSync(ed25519KeyPath)) {
+                console.log(chalk.blue('🔑 Using Ed25519 key for better compatibility'));
+                keyPath = ed25519KeyPath;
+            }
+            
+            const mkdirCmd = `ssh -i "${keyPath}" ${config.username}@${config.host} "mkdir -p ${remotePath}/${dir}"`;
+            try {
+                execSync(mkdirCmd, { stdio: 'pipe' });
+            } catch (error) {
+                console.error(chalk.red(`❌ Failed to create directory: ${dir}`));
+                console.error(chalk.yellow('Error details:'), error.message);
+                throw new Error(`Failed to create directory: ${error.message}`);
+            }
         }
         
         // Transfer each file
         console.log(chalk.blue('📤 Transferring files...'));
         let fileCount = 0;
         
+        // Check if Ed25519 key exists and use it instead of RSA if available
+        let keyPath = config.privateKeyPath;
+        const ed25519KeyPath = path.join(path.dirname(config.privateKeyPath), 'id_ed25519');
+        
+        if (fs.existsSync(ed25519KeyPath)) {
+            console.log(chalk.blue('🔑 Using Ed25519 key for better compatibility'));
+            keyPath = ed25519KeyPath;
+        }
+        
         for (const file of files) {
             fileCount++;
             process.stdout.write(`\r${chalk.blue(`Transferring file ${fileCount}/${files.length}: ${file}`)}`);
             
-            const scpCmd = `scp -i "${config.privateKeyPath}" "${path.join(localPath, file)}" ${config.username}@${config.host}:"${remotePath}/${file}"`;
-            execSync(scpCmd, { stdio: 'ignore' });
+            const scpCmd = `scp -i "${keyPath}" "${path.join(localPath, file)}" ${config.username}@${config.host}:"${remotePath}/${file}"`;
+            try {
+                execSync(scpCmd, { stdio: 'pipe' });
+            } catch (error) {
+                console.error(chalk.red(`\n❌ Failed to transfer file: ${file}`));
+                console.error(chalk.yellow('Error details:'), error.message);
+                throw new Error(`Failed to transfer file: ${error.message}`);
+            }
         }
         
-        console.log(chalk.green('\n\n✅ Deployment completed successfully!'));
+        console.log(chalk.green(`\n\n✅ Successfully transferred ${files.length} files!`));
     } catch (error) {
         throw new Error(`SCP deployment failed: ${error.message}`);
     }

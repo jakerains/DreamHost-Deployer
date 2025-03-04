@@ -2,7 +2,7 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
-## [Unreleased]
+## [0.4.1] - 2025-03-04
 
 ### Added
 - Switched from RSA to Ed25519 SSH keys for better security and compatibility
@@ -17,6 +17,11 @@ All notable changes to the DreamHost Deployer project will be documented in this
   - Multiple deployment paths depending on environment (Windows/WSL/Linux/Mac)
   - Automatic platform detection to choose appropriate deployment method
   - Detailed user prompts for handling Windows-specific deployment options
+- Added new `fix-ssh-key` command to resolve SSH key issues
+  - Interactive tool to diagnose and fix SSH key problems
+  - Options to generate new Ed25519 keys or use existing ones
+  - Automatic configuration update to use the correct key type
+  - Detailed guidance for adding keys to DreamHost panel
 - Added support for setting up NVM and Node.js on DreamHost server
   - New `setup-node` command to install NVM and Node.js
   - Support for custom Node.js versions
@@ -54,4 +59,9 @@ All notable changes to the DreamHost Deployer project will be documented in this
   - Updated minimatch package to version 5.1.0
   - Improved error handling in file exclusion logic
   - Added fallback to simple string comparison if minimatch fails
-  - Enhanced robustness of the SCP deployment method 
+  - Enhanced robustness of the SCP deployment method
+- Fixed SSH key compatibility issues with DreamHost
+  - Added automatic detection of Ed25519 keys
+  - Improved error handling for SSH and SCP commands
+  - Added detailed error messages for failed directory creation and file transfers
+  - Prioritized Ed25519 keys over RSA keys when available 
