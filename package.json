@@ -1,6 +1,6 @@
 {
   "name": "dreamhost-deployer",
-  "version": "0.5.6",
+  "version": "0.5.8",
   "description": "A CLI tool for deploying websites to DreamHost with optimized support for Vite projects",
   "main": "deploy.js",
   "bin": {
