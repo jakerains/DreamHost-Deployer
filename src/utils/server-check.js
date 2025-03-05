@@ -29,8 +29,61 @@ async function checkServerEnvironment(config) {
             return true; // Setup needed, but will be handled by verifySSHConnection
         }
         
-        // Build SSH command base
-        const sshBase = `ssh ${config.username}@${config.host}`;
+        // Create SSH connection for all checks
+        const conn = new Client();
+        
+        // Set up authentication
+        let authConfig = {
+            host: config.host,
+            username: config.username,
+            readyTimeout: 30000
+        };
+        
+        // Add password if available
+        if (config.password) {
+            authConfig.password = config.password;
+        }
+        // Add private key if available
+        else if (config.privateKeyPath && fs.existsSync(config.privateKeyPath)) {
+            try {
+                authConfig.privateKey = fs.readFileSync(config.privateKeyPath);
+            } catch (err) {
+                console.log(chalk.yellow(`⚠️ Could not read private key: ${err.message}`));
+                return true; // Setup needed due to authentication issues
+            }
+        }
+        
+        // Connect to the server
+        try {
+            await new Promise((resolve, reject) => {
+                conn.on('ready', () => {
+                    resolve();
+                }).on('error', (err) => {
+                    reject(err);
+                }).connect(authConfig);
+            });
+        } catch (error) {
+            console.error(chalk.red(`❌ Failed to connect to server: ${error.message}`));
+            return true; // Setup needed due to connection issues
+        }
+        
+        // Helper function to execute commands over SSH
+        const executeCommand = async (command) => {
+            return new Promise((resolve, reject) => {
+                conn.exec(command, (err, stream) => {
+                    if (err) return reject(err);
+                    
+                    let output = '';
+                    stream.on('close', () => {
+                        resolve(output);
+                    }).on('data', (data) => {
+                        output += data.toString();
+                    }).stderr.on('data', (data) => {
+                        output += data.toString();
+                    });
+                });
+            });
+        };
         
         // Check if NVM is installed
         console.log(chalk.cyan('Checking for NVM installation...'));
@@ -38,12 +91,19 @@ async function checkServerEnvironment(config) {
         let nvmVersion = '';
         
         try {
-            const nvmOutput = execSync(`${sshBase} "source ~/.nvm/nvm.sh 2>/dev/null && nvm --version"`, { stdio: 'pipe' }).toString().trim();
-            nvmInstalled = true;
-            nvmVersion = nvmOutput;
-            console.log(chalk.green(`✅ NVM is installed (version ${nvmVersion})`));
+            const nvmOutput = await executeCommand('source ~/.nvm/nvm.sh 2>/dev/null && nvm --version');
+            nvmVersion = nvmOutput.trim();
+            if (nvmVersion) {
+                nvmInstalled = true;
+                console.log(chalk.green(`✅ NVM is installed (version ${nvmVersion})`));
+            } else {
+                console.log(chalk.yellow('⚠️ NVM is not installed or not properly configured'));
+                conn.end(); // Close the connection
+                return true; // Setup needed
+            }
         } catch (error) {
             console.log(chalk.yellow('⚠️ NVM is not installed or not properly configured'));
+            conn.end(); // Close the connection
             return true; // Setup needed
         }
         
@@ -53,14 +113,25 @@ async function checkServerEnvironment(config) {
         let nodeVersion = '';
         
         try {
-            const nodeOutput = execSync(`${sshBase} "source ~/.nvm/nvm.sh 2>/dev/null && node --version"`, { stdio: 'pipe' }).toString().trim();
-            nodeInstalled = true;
-            nodeVersion = nodeOutput.replace('v', '');
-            console.log(chalk.green(`✅ Node.js is installed (version ${nodeOutput})`));
+            const nodeOutput = await executeCommand('source ~/.nvm/nvm.sh 2>/dev/null && node --version');
+            const trimmedOutput = nodeOutput.trim();
+            if (trimmedOutput) {
+                nodeInstalled = true;
+                nodeVersion = trimmedOutput.replace('v', '');
+                console.log(chalk.green(`✅ Node.js is installed (version ${trimmedOutput})`));
+            } else {
+                console.log(chalk.yellow('⚠️ Node.js is not installed or not properly configured'));
+                conn.end(); // Close the connection
+                return true; // Setup needed
+            }
         } catch (error) {
             console.log(chalk.yellow('⚠️ Node.js is not installed or not properly configured'));
+            conn.end(); // Close the connection
             return true; // Setup needed
         }
+        
+        // Close the SSH connection
+        conn.end();
         
         // Check if versions meet recommendations
         const nvmNeedsUpdate = compareVersions(nvmVersion, RECOMMENDED_NVM_VERSION) < 0;

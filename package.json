@@ -1,7 +1,7 @@
 {
   "name": "dreamhost-deployer",
-  "version": "0.5.2",
-  "description": "A CLI tool for deploying websites to DreamHost servers via SSH",
+  "version": "0.5.6",
+  "description": "A CLI tool for deploying websites to DreamHost with optimized support for Vite projects",
   "main": "deploy.js",
   "bin": {
     "dreamhost-deployer": "./bin/cli.js"
@@ -13,11 +13,13 @@
   },
   "keywords": [
     "dreamhost",
-    "deploy",
+    "deployment",
     "ssh",
+    "scp",
     "cli",
-    "web",
-    "hosting"
+    "vite",
+    "build-integration",
+    "static-site"
   ],
   "author": "jakerains",
   "license": "MIT",

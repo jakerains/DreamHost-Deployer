@@ -1,4 +1,4 @@
-# Publishing Guide for DreamHost Deployer v0.5.0
+# Publishing Guide for DreamHost Deployer v0.5.4
 
 This guide outlines the steps for publishing the DreamHost Deployer package to npm.
 
@@ -6,18 +6,18 @@ This guide outlines the steps for publishing the DreamHost Deployer package to n
 
 Before publishing, ensure the following:
 
-- [x] Version number updated to 0.5.0 in package.json
+- [x] Version number updated to 0.5.4 in package.json
 - [x] CHANGELOG.md updated with all new features and improvements
 - [x] All code changes tested and working correctly
 - [x] Documentation updated to reflect new features and changes
-- [x] Release notes created in docs/v0.5.0-release-notes.md
+- [x] Release notes created in docs/v0.5.4-release-notes.md
 
-### Key Features in v0.5.0
+### Key Features in v0.5.4
 
-- **Interactive CLI Menu**: Main menu with all available commands
-- **Enhanced Server Environment Checks**: More detailed output with follow-up actions
-- **Updated Node.js Support**: Added support for Node.js 22.14.0 LTS (Jod)
-- **Improved User Experience**: Better color-coded output and guidance
+- **Target Directory Check**: Options to update or clean existing files
+- **Improved Connection Handling**: Enhanced SSH reliability with SSH2 library
+- **Batch File Transfers**: Better performance and reliability
+- **Windows Compatibility**: More reliable deployment on Windows systems
 
 ## Publishing Steps
 
@@ -41,7 +41,7 @@ Before publishing, ensure the following:
    ```
    npm view dreamhost-deployer
    ```
-   Check that the version is 0.5.0 and all information is correct.
+   Check that the version is 0.5.4 and all information is correct.
 
 ## Testing on Target System
 
@@ -56,7 +56,7 @@ After publishing, test the package on a target system:
    ```
    dreamhost-deployer --version
    ```
-   Should output 0.5.0
+   Should output 0.5.4
 
 3. **Try the interactive menu**:
    ```

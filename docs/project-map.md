@@ -1,7 +1,102 @@
-# DreamHost Deployer Project Map
+# DreamHost Deployer - Project Map
 
 ## Project Overview
-DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via SSH. It provides a simple interface for configuring and deploying websites to DreamHost hosting.
+
+DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via SSH. It provides a streamlined deployment process with features for checking server environments, setting up Node.js, and handling SSH authentication.
+
+## Version History
+
+- **Current Version**: 0.5.4
+- **Previous Versions**: 0.5.3, 0.5.2, 0.5.1, 0.5.0, 0.4.7, 0.4.6, 0.4.5, 0.4.4, 0.4.3, 0.4.1
+
+## Core Components
+
+### 1. Deployment System
+- **Main Deploy Function** (`deploy.js`): Orchestrates the entire deployment process
+- **SSH/SCP Implementation** (`deploy.js:deployWithNativeSSH`): Cross-platform file transfer
+- **Build Integration** (`deploy.js`): Runs build process before deployment
+  - Support for various frameworks including specialized Vite support
+  - Build output directory deployment
+  - Live build output streaming
+  - Framework-specific error handling
+
+### 2. Server Management
+- **Server Checks** (`src/utils/server-check.js`): Validates server environment
+- **SSH Key Setup** (`setup-ssh.js`): Simplifies SSH key authentication
+- **SSH Key Repair** (`fix-ssh-key.js`): Fixes common SSH key issues
+
+### 3. CLI Interface
+- **Command Line Interface** (`bin/cli.js`): Provides easy-to-use commands
+- **Interactive Menu** (`bin/cli.js`): User-friendly interface for all features
+- **Project-specific Settings** (`bin/cli.js`): Framework-specific configurations
+
+## Special Features
+
+### 1. Vite Project Support (v0.5.6+)
+- **Auto-detection**: Identifies Vite projects through configuration files and dependencies
+- **Optimized Settings**: Uses Vite-specific defaults (dist directory, npm run build)
+- **Specialized Exclusions**: Excludes source files and config files appropriately
+- **Targeted Error Handling**: Provides Vite-specific solutions for common build issues
+
+### 2. Target Directory Management
+- **Clean Option**: Removes existing files before deployment
+- **Update Option**: Preserves non-conflicting files during deployment
+
+### 3. Connection Handling 
+- **SSH2 Library Integration**: More reliable SSH connections
+- **Batch File Transfers**: Improved stability and performance
+- **Comprehensive Error Handling**: Better recovery from connection issues
+
+## Configuration System
+- **Config File Management** (`deploy.js:loadOrCreateConfig`): Loads or creates JSON configuration
+- **Framework Detection**: Auto-detects project type and suggests appropriate settings
+- **Interactive Configuration**: Guides users through setup process
+
+## Documentation
+- **Release Notes**: Version-specific details about features and changes
+- **Changelog**: History of all updates and improvements
+- **Project Map**: This document providing system overview
+
+## Technical Decisions
+
+### 1. Cross-Platform Compatibility
+- **Native SSH/SCP**: Primary deployment method for Windows/macOS/Linux
+- **Fallback Mechanisms**: Alternative methods if primary fails
+- **Path Handling**: Consistent path normalization across platforms
+
+### 2. Build Integration Design
+- **Framework Agnostic**: Core support for any build system
+- **Framework-Specific Optimizations**: Special handling for known frameworks
+- **Error Recovery**: Options to continue deployment despite build issues
+
+### 3. Vite-Specific Optimizations (v0.5.6+)
+- **Default Directory**: Using "dist" instead of generic "build"
+- **Source Exclusions**: Preventing unnecessary source files from being deployed
+- **Output Verification**: Ensuring build output matches expected Vite structure
+
+## Usage Flow
+
+1. **Initial Setup**:
+   - Run `dreamhost-deployer setup-ssh` to configure SSH connection
+   - Optionally run `dreamhost-deployer setup-node` to set up Node.js on server
+
+2. **Deployment**:
+   - Run `dreamhost-deployer deploy` to start deployment
+   - Tool checks target directory for existing files
+   - User chooses to update, clean, or cancel
+   - Tool creates directory structure and transfers files
+   - Tool provides next steps based on web server type
+
+3. **Troubleshooting**:
+   - Run `dreamhost-deployer check-server` to verify server environment
+   - Run `dreamhost-deployer fix-ssh-key` to resolve SSH key issues
+
+## Future Development
+
+- Add rollback functionality for failed deployments
+- Implement differential deployments (only transfer changed files)
+- Add support for custom deployment hooks (pre/post-deployment scripts)
+- Enhance logging and reporting features
 
 ## Project Structure
 - `bin/` - Contains the CLI entry point
@@ -27,80 +122,6 @@ DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via
   - `project-map.md` - This file, documenting the project structure
   - `npm-publishing-guide.md` - Guide for publishing the package to npm
   - `windows-deployment-guide.md` - Detailed guide for Windows users
-
-## Core Files
-- `deploy.js` - Main deployment logic
-- `setup-ssh.js` - SSH setup and configuration logic
-- `fix-ssh-key.js` - Tool to fix SSH key issues and migrate to Ed25519
-- `test.js` - Basic test script to verify package configuration
-- `package.json` - Project metadata and dependencies
-- `deploy.config.json` - User configuration file for deployment settings
-
-## Technical Decisions
-
-### Input Handling
-- Using the `inquirer` library for handling user input
-- Interactive prompts with proper input validation
-- Support for different prompt types (input, confirm)
-- Reliable input handling without keystroke duplication issues
-
-### Deployment Method
-- Simplified cross-platform deployment using native SSH/SCP commands
-  - Standardized on SCP/SFTP for all platforms (Windows, macOS, Linux)
-  - Eliminated dependency on rsync for better cross-platform compatibility
-  - Leveraged built-in SSH client available on modern platforms (Windows 10+, macOS, Linux)
-  - Improved file transfer reliability with native commands
-  - Robust file exclusion pattern handling with minimatch v5.1.0
-  - Fallback mechanisms for pattern matching to ensure reliability
-  - Detailed error reporting for SSH and SCP operations
-  - Graceful failure handling with informative error messages
-- Cross-platform compatibility with Windows, macOS, and Linux
-  - Unified deployment approach across all platforms
-  - No special handling required for different operating systems
-  - Clear guidance on running the tool in the appropriate environment
-
-### Authentication Methods
-- Robust SSH authentication with comprehensive diagnostics
-  - Automatic detection of available authentication methods on the server
-  - Support for both password and key-based authentication
-  - Multiple fallback mechanisms for authentication failures
-  - Detailed troubleshooting guidance for connection issues
-  - Password authentication as the recommended method for all platforms
-  - Interactive password prompts with masked input
-  - Option to save password in configuration (not recommended for security)
-  - SSH key authentication still available for advanced users
-  - SSH key generation and configuration (Ed25519 preferred)
-  - Detailed guidance for manual SSH key installation on server
-  - Connection testing during setup
-  - Secure handling of credentials
-
-### Configuration Management
-- JSON-based configuration for easy editing and parsing
-- Template-based initialization for consistent configuration
-- Support for custom configuration paths
-- Web server type selection (Apache or Nginx)
-
-### Server Environment Setup
-- Automatic server environment check before deployment
-  - Verification of SSH connectivity with robust error handling
-  - Automatic detection of available authentication methods
-  - Verification of NVM and Node.js versions
-  - Comparison against recommended versions (NVM 0.40.1, Node.js 20.18.0)
-  - Interactive prompt to set up or update if needed
-  - Dedicated `check-server` command for independent verification
-- NVM and Node.js installation on DreamHost server
-  - Support for custom Node.js versions
-  - Automatic configuration of environment variables
-  - Server-specific configuration for Apache and Nginx
-  - Support for both SSH key and password authentication
-  - Comprehensive error handling for SSH connection issues
-
-### User Interface
-- User-friendly CLI with clear instructions
-- Visual cues using emoji icons
-- Colored output for better readability
-- Progress indicators for multi-step processes
-- Detailed next steps after each operation
 
 ## Dependencies
 - `commander` - Command-line argument parsing

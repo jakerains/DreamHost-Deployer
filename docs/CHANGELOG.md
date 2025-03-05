@@ -2,6 +2,99 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.5.6] - 2025-03-14
+
+### Added
+- Added build integration for deployment
+  - Option to run build command before deployment
+  - Deploy only the build output directory instead of the entire project
+  - Configurable build command and output directory
+  - Automatic detection of build failure with option to continue deployment
+  - Better separation between source code and deployment artifacts
+- Enhanced deployment process
+  - Improved fallback mechanism between deployment methods
+  - Better error handling for deployment failures
+  - More reliable file transfer with directory creation
+  - Cleaner progress reporting during deployment
+- **Enhanced Vite Project Support**: Added special detection and optimization for Vite-based projects
+  - Auto-detection of Vite projects by checking for vite.config.js/ts or vite dependencies
+  - Default output directory set to "dist" for Vite projects (standard Vite output folder)
+  - Vite-specific file exclusions when deploying without build integration
+  - Improved error handling and guidance for Vite build issues
+
+### Improved
+- **Build Process Enhancements**:
+  - Live output streaming during build process
+  - More detailed error reporting with framework-specific solutions
+  - Better detection of successful builds even when exit codes are non-zero
+  - Added option to deploy from source directory if build fails
+- **CLI Interface**:
+  - Added project-specific settings menu with framework configuration options
+  - Enhanced "About" section with more detailed feature information
+  - Improved menu organization with descriptions for each option
+
+### Fixed
+- Fixed syntax error in loadOrCreateConfig function that caused an "Unexpected token 'catch'" error
+  - Properly structured try-catch block to handle configuration loading
+  - Added better error handling for configuration file operations
+  - Improved configuration initialization and loading process
+- Fixed timeout issues when creating directories on remote server
+  - Implemented sequential directory creation to prevent overwhelming the server
+  - Added proper error handling for directory creation failures
+  - Improved connection stability with longer timeouts and keepalive packets
+- Enhanced file transfer reliability
+  - Added batch processing with pauses between batches
+  - Improved error handling during file transfers
+  - Better password authentication handling for SCP operations
+- Fixed issues with default build configuration detection
+- Improved error handling for build process failures
+
+## [0.5.5] - 2025-03-13
+
+### Fixed
+- Enhanced directory cleaning process
+  - Added timeout handling to prevent hanging during directory cleaning
+  - Improved progress reporting with detailed status messages
+  - Added fallback timeout mechanism for very large directories
+  - Better error handling with more descriptive messages
+- Improved target directory check
+  - Added timeout handling for directory check operations
+  - Enhanced error messages for common connection issues
+  - Added file count to directory status report
+  - More robust error handling throughout the process
+
+## [0.5.4] - 2025-03-12
+
+### Added
+- Added target directory check before deployment
+  - Automatically detects if the target directory contains existing files
+  - Provides options to update existing files or clean the directory before deployment
+  - Allows canceling deployment if needed
+- Improved SSH connection handling
+  - Replaced command-line SSH with SSH2 library for directory creation
+  - Added batch processing for file transfers to prevent server overload
+  - Implemented connection timeout handling and retry mechanisms
+  - Added keepalive packets to prevent connection drops during long operations
+
+### Fixed
+- Fixed timeout issues when creating directories on remote server
+  - Implemented sequential directory creation to prevent overwhelming the server
+  - Added proper error handling for directory creation failures
+  - Improved connection stability with longer timeouts and keepalive packets
+- Enhanced file transfer reliability
+  - Added batch processing with pauses between batches
+  - Improved error handling during file transfers
+  - Better password authentication handling for SCP operations
+
+## [0.5.3] - 2025-03-11
+
+### Fixed
+- Fixed password reuse issue in server environment checks
+  - Eliminated repeated password prompts when checking NVM and Node.js
+  - Reused saved password from configuration for all SSH operations
+  - Replaced command-line SSH checks with SSH2 library for consistency
+  - Single SSH connection used for all server environment checks
+
 ## [0.5.2] - 2025-03-10
 
 ### Fixed

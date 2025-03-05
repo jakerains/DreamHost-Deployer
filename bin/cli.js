@@ -2,8 +2,14 @@
 
 /**
  * DreamHost Deployer CLI
- * A command-line tool for deploying websites to DreamHost servers
- * Version 0.5.2 - Enhanced CLI with interactive menu and improved Windows compatibility
+ * Version 0.5.6 - Enhanced for Vite projects with build integration
+ * 
+ * Features:
+ * - Simple deployment to DreamHost via SSH/SCP
+ * - Interactive CLI menu
+ * - Server environment checks
+ * - Build integration for modern frameworks
+ * - Optimized for Vite projects
  */
 
 const path = require('path');
@@ -31,27 +37,74 @@ program
   .action(async () => {
     console.log(chalk.blue.bold(`\n🚀 DreamHost Deployer v${pkg.version}\n`));
     
+    const choices = [
+      {
+        name: '🚀 Deploy website to DreamHost',
+        value: 'deploy',
+        description: 'Deploy your website files to DreamHost server'
+      },
+      {
+        name: '🔨 Run build process only',
+        value: 'build',
+        description: 'Build your project without deploying'
+      },
+      {
+        name: '🔑 Setup SSH key authentication',
+        value: 'setup-ssh',
+        description: 'Generate and upload SSH keys to DreamHost'
+      },
+      {
+        name: '🔧 Fix SSH key permissions',
+        value: 'fix-ssh-key',
+        description: 'Fix common SSH key permission issues'
+      },
+      {
+        name: '🔍 Check server environment',
+        value: 'check-server',
+        description: 'Check Node.js and NVM on your DreamHost server'
+      },
+      {
+        name: '❓ About DreamHost Deployer',
+        value: 'about',
+        description: 'Show information about this tool'
+      },
+      {
+        name: '📋 Project-specific settings',
+        value: 'project-settings',
+        description: 'Configure build settings for Vite and other frameworks'
+      },
+      {
+        name: '❌ Exit',
+        value: 'exit',
+        description: 'Exit the program'
+      }
+    ];
+
     const { action } = await inquirer.prompt([
       {
         type: 'list',
         name: 'action',
         message: 'What would you like to do?',
-        choices: [
-          { name: '🔧 Initialize configuration', value: 'init' },
-          { name: '🔑 Setup SSH connection', value: 'setup-ssh' },
-          { name: '🔍 Check server environment', value: 'check-server' },
-          { name: '📦 Setup Node.js on server', value: 'setup-node' },
-          { name: '🚀 Deploy website', value: 'deploy' },
-          { name: '🔄 Fix SSH key issues', value: 'fix-ssh-key' },
-          { name: '❓ Show help', value: 'help' },
-          { name: '❌ Exit', value: 'exit' }
-        ]
+        loop: false,
+        pageSize: choices.length,
+        choices: choices.map(choice => ({
+          name: `${choice.name} - ${choice.description}`,
+          value: choice.value
+        }))
       }
     ]);
     
     switch (action) {
-      case 'init':
-        setupSsh.initConfig();
+      case 'deploy':
+        deploy.deploy();
+        break;
+      case 'build':
+        try {
+          console.log(chalk.blue('🔨 Running build process...'));
+          await deploy.runBuildOnly();
+        } catch (error) {
+          console.error(chalk.red(`Error: ${error.message}`));
+        }
         break;
       case 'setup-ssh':
         setupSsh.run();
@@ -62,17 +115,64 @@ program
       case 'setup-node':
         setupNode.run();
         break;
-      case 'deploy':
-        deploy.deploy();
-        break;
       case 'fix-ssh-key':
         fixSshKey.run();
         break;
-      case 'help':
-        program.outputHelp();
+      case 'project-settings':
+        try {
+          // Show project-specific settings menu
+          const { projectType } = await inquirer.prompt([
+            {
+              type: 'list',
+              name: 'projectType',
+              message: 'What type of project are you working with?',
+              choices: [
+                { name: 'Vite (React, Vue, Svelte, etc.)', value: 'vite' },
+                { name: 'Create React App (CRA)', value: 'cra' },
+                { name: 'Next.js', value: 'nextjs' },
+                { name: 'Other/Manual configuration', value: 'other' }
+              ]
+            }
+          ]);
+          
+          // Handle different project types
+          switch (projectType) {
+            case 'vite':
+              console.log(chalk.green('\n📦 Vite Project Settings'));
+              console.log(chalk.cyan('For Vite projects, the deployer will:'));
+              console.log(chalk.cyan('- Use "dist" as the default build output directory'));
+              console.log(chalk.cyan('- Run "npm run build" as the default build command'));
+              console.log(chalk.cyan('- Add Vite-specific exclusions for source files'));
+              console.log(chalk.cyan('- Provide optimized error handling for Vite builds'));
+              
+              console.log(chalk.blue('\nℹ️ This will be applied when you run deploy.'));
+              break;
+              
+            case 'cra':
+            case 'nextjs':
+            case 'other':
+              console.log(chalk.yellow('\nℹ️ Configuration for this project type will be done during deployment.'));
+              break;
+          }
+        } catch (error) {
+          console.error(chalk.red(`Error: ${error.message}`));
+        }
+        break;
+      case 'about':
+        console.log(chalk.green('\n📦 DreamHost Deployer'));
+        console.log(chalk.blue('Version: 0.5.6'));
+        console.log(chalk.blue('A tool for deploying websites to DreamHost shared hosting.'));
+        console.log(chalk.blue('Features:'));
+        console.log(chalk.blue('- Simple deployment to DreamHost via SSH/SCP'));
+        console.log(chalk.blue('- Interactive CLI menu'));
+        console.log(chalk.blue('- Server environment checks'));
+        console.log(chalk.blue('- Build integration for modern frameworks'));
+        console.log(chalk.blue('- Special optimizations for Vite projects'));
+        console.log(chalk.blue('- Target directory management'));
+        console.log(chalk.blue('- SSH key setup and management'));
         break;
       case 'exit':
-        console.log(chalk.green('Goodbye! 👋'));
+        console.log(chalk.blue('Goodbye! 👋'));
         process.exit(0);
         break;
     }
