@@ -38,8 +38,8 @@ async function loadOrCreateConfig(configPath) {
     try {
         const config = {};
         
-        // Check if config exists
-        if (!fs.existsSync(configPath)) {
+    // Check if config exists
+    if (!fs.existsSync(configPath)) {
             console.log(chalk.yellow(`Configuration file not found at ${configPath}`));
             console.log(chalk.blue('Let\'s set up your DreamHost deployment configuration...'));
             
