@@ -1,6 +1,6 @@
 /**
  * DreamHost Deployer
- * Version 0.6.1
+ * Version 0.6.2
  * 
  * Information commands implementation with enhanced UI
  */

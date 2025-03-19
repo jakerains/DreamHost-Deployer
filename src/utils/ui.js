@@ -43,8 +43,7 @@ function showAppHeader() {
   const version = require('../../package.json').version;
   console.log(boxen(
     chalk.bold(`Version ${version}`) + '\n\n' +
-    chalk.cyan('A stylish tool for deploying websites to DreamHost') + '\n' +
-    terminalLink('GitHub Repository', 'https://github.com/jakerains/dreamhost-deployer', { fallback: false }),
+    chalk.cyan('A stylish tool for deploying websites to DreamHost'),
     {
       padding: 1,
       margin: { top: 1, bottom: 1 },
