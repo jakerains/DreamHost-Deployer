@@ -1,0 +1,20 @@
+\e[34m┌────────────────────────────────────────────────────────────────────────────┐\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+[34m│[0m                    \e[1;36mDreamHost Deployer v0.6.2\e[0m                    [34m│[0m
+[34m│[0m                      \e[90mSSH Key Setup Assistant\e[0m                      [34m│[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m✓\e[0m Checking for existing SSH keys                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m✓\e[0m Found SSH key: \e[36m~/.ssh/id_rsa.pub\e[0m                                        \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m✓\e[0m Fixed permissions on SSH key files                                        \e[34m│\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;37mYour SSH Public Key:\e[0m                                                       \e[34m│\e[0m
+\e[34m│\e[0m  \e[90mssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4s0qNYf...truncated...user@host\e[0m       \e[34m│\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;33m!\e[0m To complete setup, add this key to your DreamHost panel:                  \e[34m│\e[0m
+\e[34m│\e[0m    1. Log in to DreamHost Panel                                                 \e[34m│\e[0m
+\e[34m│\e[0m    2. Go to \e[36mServers → SSH Keys\e[0m                                                 \e[34m│\e[0m
+\e[34m│\e[0m    3. Add the key shown above                                                   \e[34m│\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+[34m│[0m                     \e[3;90mPress Enter to continue\e[0m                     [34m│[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m└────────────────────────────────────────────────────────────────────────────┘\e[0m

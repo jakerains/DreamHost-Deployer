@@ -18,6 +18,47 @@
 
 const path = require('path');
 const { program } = require('commander');
+const chalk = require('chalk');
+const fs = require('fs');
+const pkg = require('../package.json');
+
+// Custom version display function
+function displayVersion() {
+  // Simple ASCII art using border characters
+  const border = '━'.repeat(40);
+  const emptyLine = '┃' + ' '.repeat(38) + '┃';
+  
+  // Create version box with manual ASCII art
+  console.log(chalk.cyan('┏' + border + '┓'));
+  console.log(chalk.cyan('┃' + ' '.repeat(38) + '┃'));
+  console.log(chalk.cyan('┃') + chalk.bold.cyan(`   DreamHost Deployer v${pkg.version}`) + ' '.repeat(15 - pkg.version.length) + chalk.cyan('┃'));
+  console.log(chalk.cyan('┃' + ' '.repeat(38) + '┃'));
+  console.log(chalk.cyan('┗' + border + '┛'));
+  console.log();
+  
+  // ASCII art of bear character holding sign
+  console.log('       \\');
+  console.log('        \\');
+  console.log('         \\');
+  console.log('  ' + chalk.green('ʕ•ᴥ•ʔ') + '   ' + chalk.bold.blue('~ DreamHost Deployer ~'));
+  console.log('  ' + chalk.blue('|') + ' ' + chalk.yellow('\\o/'));
+  console.log('  ' + chalk.blue('|') + '  ' + chalk.yellow('|'));
+  console.log(' ' + chalk.blue('/') + ' ' + chalk.blue('\\') + ' ' + chalk.yellow('/') + ' ' + chalk.yellow('\\'));
+  console.log();
+  
+  // Additional info
+  console.log(chalk.blue('✧ A stylish CLI tool for deploying websites to DreamHost ✧'));
+  console.log(chalk.underline.blue('https://github.com/jakerains/dreamhost-deployer'));
+  
+  process.exit(0);
+}
+
+// Check if version flag is passed
+if (process.argv.includes('-v') || process.argv.includes('--version') || process.argv.includes('version')) {
+  displayVersion();
+}
+
+// Import remaining modules after version check
 const deploy = require('../deploy');
 const setupSsh = require('../setup-ssh');
 const setupNode = require('../src/commands/setup-node');
@@ -25,15 +66,19 @@ const fixSshKey = require('../fix-ssh-key');
 const { checkServerEnvironment } = require('../src/utils/server-check');
 const buildIntegration = require('../src/utils/build-integration');
 const ui = require('../src/utils/ui');
-const fs = require('fs');
-const pkg = require('../package.json');
 const inquirer = require('inquirer');
 
 // Set up the CLI program
 program
   .name('dreamhost-deployer')
   .description('Deploy websites to DreamHost servers via SSH')
-  .version(pkg.version);
+  .version(pkg.version, '-v, --version', 'Display fancy version information');
+
+// Add dedicated version command that uses our fancy version display
+program
+  .command('version')
+  .description('Display fancy version information')
+  .action(displayVersion);
 
 // Main menu command (default when no arguments provided)
 program

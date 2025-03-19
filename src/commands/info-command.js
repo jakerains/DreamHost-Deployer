@@ -330,7 +330,33 @@ async function showHelp() {
  * Show version information
  */
 function showVersion() {
-  console.log(ui.success(`DreamHost Deployer v${packageInfo.version}`));
+  // ASCII art character holding a sign with version
+  const versionArt = `
+  ${ui.highlight(`╭${'─'.repeat(packageInfo.version.length + 18)}╮`)}
+  ${ui.highlight(`│ DreamHost Deployer v${packageInfo.version} │`)}
+  ${ui.highlight(`╰${'─'.repeat(packageInfo.version.length + 18)}╯`)}
+         \\
+          \\
+           \\  
+    ${ui.success('ʕ•ᴥ•ʔ')}
+    ${ui.info('|')} ${ui.warning('\\o/')}
+    ${ui.info('|')}  ${ui.warning('|')}
+   ${ui.info('/')} ${ui.info('\\')} ${ui.warning('/')} ${ui.warning('\\')}
+  `;
+  
+  // Format the output with a gradient border box
+  const boxContent = `${versionArt}
+
+  ${ui.info('✧ A stylish CLI tool for deploying websites to DreamHost ✧')}
+  ${ui.link('https://github.com/jakerains/dreamhost-deployer')}
+  `;
+  
+  console.log(ui.box(boxContent, { 
+    title: 'VERSION INFO',
+    padding: 1,
+    borderStyle: 'round',
+    borderColor: 'cyan'
+  }));
 }
 
 module.exports = {

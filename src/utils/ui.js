@@ -68,6 +68,14 @@ function sectionHeader(title) {
 }
 
 /**
+ * Display a subsection header
+ * @param {string} title The subsection title
+ */
+function subsectionHeader(title) {
+  console.log('\n' + chalk.cyan.bold(`[ ${title} ]`));
+}
+
+/**
  * Create a spinner with a message
  * @param {string} text The spinner text
  * @returns {object} The spinner instance
@@ -220,9 +228,81 @@ function projectTypeBadge(type) {
   return chalk.bgHex(bgColor).hex(textColor)(` ${type.toUpperCase()} `);
 }
 
+/**
+ * Format highlighted text
+ * @param {string} text The text to highlight
+ * @returns {string} The highlighted text
+ */
+function highlight(text) {
+  return chalk.cyan.bold(text);
+}
+
+/**
+ * Format a label
+ * @param {string} text The label text
+ * @returns {string} The formatted label
+ */
+function label(text) {
+  return chalk.blue.bold(text);
+}
+
+/**
+ * Create a box around text
+ * @param {string} content The content for the box
+ * @param {object} options Box options
+ * @returns {string} The boxed content
+ */
+function box(content, options = {}) {
+  return boxen(content, {
+    padding: options.padding || 1,
+    margin: options.margin || { top: 0, bottom: 1 },
+    borderStyle: options.borderStyle || 'round',
+    borderColor: options.borderColor || 'blue',
+    title: options.title || '',
+    titleAlignment: options.titleAlignment || 'center'
+  });
+}
+
+/**
+ * Format a list item
+ * @param {string} text The list item text
+ * @returns {string} The formatted list item
+ */
+function listItem(text) {
+  return `  • ${text}`;
+}
+
+/**
+ * Format a command
+ * @param {string} cmd The command
+ * @returns {string} The formatted command
+ */
+function command(cmd) {
+  return chalk.green(`\`${cmd}\``);
+}
+
+/**
+ * Format a badge
+ * @param {string} text The badge text
+ * @param {string} type The badge type (success, error, warning, normal)
+ * @returns {string} The formatted badge
+ */
+function badge(text, type = 'normal') {
+  const colors = {
+    success: { bg: 'bgGreen', fg: 'black' },
+    error: { bg: 'bgRed', fg: 'white' },
+    warning: { bg: 'bgYellow', fg: 'black' },
+    normal: { bg: 'bgBlue', fg: 'white' }
+  };
+  
+  const style = colors[type] || colors.normal;
+  return chalk[style.bg][style.fg](` ${text} `);
+}
+
 module.exports = {
   showAppHeader,
   sectionHeader,
+  subsectionHeader,
   spinner,
   progressBar,
   createTable,
@@ -233,5 +313,11 @@ module.exports = {
   collapsibleSection,
   codeBlock,
   link,
-  projectTypeBadge
+  projectTypeBadge,
+  highlight,
+  label,
+  box,
+  listItem,
+  command,
+  badge
 }; 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#396afc"/>
+      <stop offset="100%" stop-color="#2948ff"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Circle background -->
+  <circle cx="75" cy="75" r="70" fill="url(#gradient)"/>
+  
+  <!-- DH text -->
+  <text x="75" y="85" font-family="Arial, sans-serif" font-size="60" font-weight="bold" text-anchor="middle" fill="white">DH</text>
+  
+  <!-- Rocket icon -->
+  <path d="M110,40 L100,50 L95,45 Z" fill="white"/>
+  <path d="M105,40 C105,40 115,30 120,25 C125,20 130,30 125,35 C120,40 110,50 110,50 Z" fill="white"/>
+</svg>
+

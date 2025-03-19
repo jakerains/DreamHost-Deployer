@@ -1,0 +1,19 @@
+\e[34m┌────────────────────────────────────────────────────────────────────────────┐\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+[34m│[0m                    \e[1;36mDreamHost Deployer v0.6.2\e[0m                    [34m│[0m
+[34m│[0m\e[90mA stylish, interactive CLI tool for deploying websites to DreamHost\e[0m[34m│[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+[34m│[0m                            \e[1;37mMAIN MENU\e[0m                            [34m│[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m1.\e[0m \e[1;37mDeploy Website\e[0m                                                        \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m2.\e[0m \e[1;37mSetup SSH Key\e[0m                                                         \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m3.\e[0m \e[1;37mConfigure Project Settings\e[0m                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m4.\e[0m \e[1;37mCheck Server Environment\e[0m                                              \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m5.\e[0m \e[1;37mManage .htaccess Configuration\e[0m                                        \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m6.\e[0m \e[1;37mRun Build Process\e[0m                                                     \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m7.\e[0m \e[1;37mView Deployment Info\e[0m                                                  \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m8.\e[0m \e[1;37mExit\e[0m                                                                  \e[34m│\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+[34m│[0m         \e[3;90mUse arrow keys to navigate and Enter to select\e[0m          [34m│[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m└────────────────────────────────────────────────────────────────────────────┘\e[0m

@@ -1,0 +1,20 @@
+\e[34m┌────────────────────────────────────────────────────────────────────────────┐\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+[34m│[0m                    \e[1;36mDreamHost Deployer v0.6.2\e[0m                    [34m│[0m
+[34m│[0m                  \e[90mDeploying website to DreamHost\e[0m                   [34m│[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;37mTarget:\e[0m example.com (\e[36mexample@example.dreamhost.com\e[0m)                         \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;37mLocal path:\e[0m ./dist                                                         \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;37mRemote path:\e[0m /home/example/example.com                                     \e[34m│\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m✓\e[0m Running build process... \e[90m(npm run build)\e[0m                                 \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m✓\e[0m Creating backup of remote files                                           \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;32m✓\e[0m Optimizing assets                                                         \e[34m│\e[0m
+\e[34m│\e[0m  \e[1;36m⟳\e[0m Uploading files to server: \e[36m[====================>           ] 73%\e[0m        \e[34m│\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m│\e[0m  \e[90mTransferred 123 of 168 files (5.3 MB of 7.2 MB)\e[0m                              \e[34m│\e[0m
+\e[34m│\e[0m  \e[90mEstimated time remaining: 23 seconds\e[0m                                         \e[34m│\e[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+[34m│[0m              \e[3;90mPress Ctrl+C to cancel the deployment\e[0m              [34m│[0m
+\e[34m│\e[0m                                                                            \e[34m│\e[0m
+\e[34m└────────────────────────────────────────────────────────────────────────────┘\e[0m

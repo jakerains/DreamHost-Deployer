@@ -2,8 +2,8 @@
 
 <div align="center">
   
-  <!-- Logo placeholder - Replace with actual logo when available -->
-  <img src="https://via.placeholder.com/150x150/396afc/ffffff?text=DH" alt="DreamHost Deployer Logo" width="150" height="150" />
+  <!-- Logo created with SVG -->
+  <img src="assets/images/logo.png" alt="DreamHost Deployer Logo" width="150" height="150" />
   
   ![Version](https://img.shields.io/badge/version-0.6.2-blue.svg?style=flat-square)
   ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
@@ -49,20 +49,22 @@ dreamhost-deployer
 dreamhost-deployer deploy
 ```
 
-## 📸 Screenshots
+## 📸 Terminal Interface
+
+The screenshots below are mockups representing the actual terminal interface you'll experience when using DreamHost Deployer.
 
 <div align="center">
   <h3>Interactive Terminal Menu</h3>
   <p>Choose from a variety of deployment and configuration options</p>
-  <img src="screenshots/main-menu.png" alt="DreamHost Deployer Terminal Menu" width="700">
+  <img src="assets/images/main-menu.png" alt="DreamHost Deployer Terminal Menu" width="700">
   
   <h3>Deployment Process</h3>
   <p>Clear progress tracking and visual feedback</p>
-  <img src="screenshots/deployment.png" alt="DreamHost Deployer Deployment" width="700">
+  <img src="assets/images/deployment.png" alt="DreamHost Deployer Deployment" width="700">
   
   <h3>SSH Key Setup</h3>
   <p>Easy SSH key management with step-by-step instructions</p>
-  <img src="screenshots/ssh-setup.png" alt="DreamHost Deployer SSH Setup" width="700">
+  <img src="assets/images/ssh-setup.png" alt="DreamHost Deployer SSH Setup" width="700">
 </div>
 
 **Note:** To see these beautiful terminal interfaces yourself, install the package and run `dreamhost-deployer`!
