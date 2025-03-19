@@ -120,7 +120,7 @@ function generateTerminalHTML(title, content) {
 }
 
 // Generate main menu screenshot
-const mainMenuContent = `<span class="bold">DreamHost Deployer v0.6.0</span>
+const mainMenuContent = `<span class="bold">DreamHost Deployer v0.6.1</span>
 
 <span class="blue">╔══════════════════════════════════╗</span>
 <span class="blue">║</span>           <span class="bold">DREAMHOST DEPLOYER</span>          <span class="blue">║</span>

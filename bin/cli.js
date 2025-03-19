@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * DreamHost Deployer CLI
- * Version 0.6.0 - Enhanced with stylish UI, modular structure, and more features
+ * DreamHost Deployer
+ * Version 0.6.1
+ * 
+ * Command-line interface with a stylish interactive UI
  * 
  * Features:
  * - Stylish interactive terminal interface

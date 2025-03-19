@@ -5,7 +5,7 @@
   <!-- Logo placeholder - Replace with actual logo when available -->
   <img src="https://via.placeholder.com/150x150/396afc/ffffff?text=DH" alt="DreamHost Deployer Logo" width="150" height="150" />
   
-  ![Version](https://img.shields.io/badge/version-0.6.0-blue.svg?style=flat-square)
+  ![Version](https://img.shields.io/badge/version-0.6.1-blue.svg?style=flat-square)
   ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
   ![Node](https://img.shields.io/badge/node-%3E=14.0.0-brightgreen.svg?style=flat-square)
   
