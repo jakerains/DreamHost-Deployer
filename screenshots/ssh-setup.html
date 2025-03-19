@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DreamHost Deployer - SSH Setup</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .terminal {
+      width: 800px;
+      background-color: #282a36;
+      border-radius: 6px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      background-color: #1e1f29;
+      border-bottom: 1px solid #333;
+    }
+    .terminal-buttons {
+      display: flex;
+      margin-right: 10px;
+    }
+    .terminal-button {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .terminal-button.red {
+      background-color: #ff5f56;
+    }
+    .terminal-button.yellow {
+      background-color: #ffbd2e;
+    }
+    .terminal-button.green {
+      background-color: #27c93f;
+    }
+    .terminal-title {
+      color: #f8f8f2;
+      font-size: 14px;
+      flex-grow: 1;
+      text-align: center;
+    }
+    .terminal-body {
+      padding: 15px;
+      color: #f8f8f2;
+      font-family: 'SF Mono', Monaco, Menlo, Consolas, 'Ubuntu Mono', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: auto;
+      max-height: 500px;
+      white-space: pre-wrap;
+    }
+    .blue {
+      color: #6272a4;
+    }
+    .green {
+      color: #50fa7b;
+    }
+    .yellow {
+      color: #f1fa8c;
+    }
+    .red {
+      color: #ff5555;
+    }
+    .cyan {
+      color: #8be9fd;
+    }
+    .magenta {
+      color: #ff79c6;
+    }
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-buttons">
+        <div class="terminal-button red"></div>
+        <div class="terminal-button yellow"></div>
+        <div class="terminal-button green"></div>
+      </div>
+      <div class="terminal-title">DreamHost Deployer - SSH Setup</div>
+    </div>
+    <div class="terminal-body"><span class="blue">╔══════════════════════════════════╗</span>
+<span class="blue">║</span>           <span class="bold">SSH KEY SETUP</span>             <span class="blue">║</span>
+<span class="blue">╚══════════════════════════════════╝</span>
+
+<span class="green">✨ Found existing SSH key at: ~/.ssh/id_rsa</span>
+
+? <span class="cyan">Use existing SSH key?</span> <span class="green">Yes</span>
+
+<span class="blue">ℹ Here is your public key:</span>
+
+<span class="blue">╔══════════════════════════════════════════════════════════════════════════════════════╗</span>
+<span class="blue">║</span> <span class="bold">SSH Public Key</span>                                                                    <span class="blue">║</span>
+<span class="blue">║</span>                                                                                    <span class="blue">║</span>
+<span class="blue">║</span> ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5Qtnw9aFO+TxpvmXKRSuKRa5t4xUy8T...      <span class="blue">║</span>
+<span class="blue">╚══════════════════════════════════════════════════════════════════════════════════════╝</span>
+
+<span class="blue">ℹ Instructions:</span>
+
+╔═════╤════════════════════════════════════════════════════════════════════════╗
+║ <span class="cyan">Step</span> │ <span class="cyan">Action</span>                                                                ║
+╟─────┼────────────────────────────────────────────────────────────────────────╢
+║ 1   │ Log in to your DreamHost panel at https://panel.dreamhost.com          ║
+║ 2   │ Go to Servers > Manage Servers                                         ║
+║ 3   │ Click on the server (example.dreamhost.com)                            ║
+║ 4   │ Click on "Manage SSH/FTP Users"                                        ║
+║ 5   │ Find your username (username)                                          ║
+║ 6   │ Click "Edit" next to your username                                     ║
+║ 7   │ Paste the above public key into the "SSH Key" field                    ║
+║ 8   │ Click "Save Changes"                                                   ║
+╚═════╧────────────────────────────────────────────────────────────────────────╝
+
+<span class="green">✨ Configuration updated with SSH key path.</span>
+
+? <span class="cyan">Would you like to verify SSH connectivity after setting up the key?</span> <span class="green">Yes</span>
+
+<span class="blue">ℹ After adding the key to DreamHost, return here and press ENTER to test the connection...</span></div>
+  </div>
+</body>
+</html>

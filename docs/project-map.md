@@ -1,132 +1,141 @@
 # DreamHost Deployer - Project Map
 
-## Project Overview
+This document provides an overview of the DreamHost Deployer codebase structure, architecture, and key components.
 
-DreamHost Deployer is a CLI tool for deploying websites to DreamHost servers via SSH. It provides a streamlined deployment process with features for checking server environments, setting up Node.js, and handling SSH authentication.
+## Project Structure
 
-## Version History
+```
+DreamHost-Deployer/
+├── bin/                     # CLI binaries
+│   └── cli.js               # Main CLI entry point
+├── docs/                    # Documentation
+│   └── project-map.md       # This file
+├── src/                     # Source code
+│   ├── commands/            # Command implementations
+│   │   ├── deploy-command.js   # Deploy command implementation
+│   │   └── setup-node.js    # Setup Node.js command
+│   └── utils/               # Utility modules
+│       ├── build-integration.js # Build process utilities
+│       ├── config-manager.js    # Configuration management
+│       ├── deployment.js        # Deployment utilities
+│       └── server-check.js      # Server environment checks
+├── templates/               # Template files
+│   └── deploy.config.template.json  # Configuration template
+├── .gitignore              # Git ignore file
+├── .npmignore              # npm ignore file
+├── deploy.js               # Main deploy module (wrapper)
+├── deploy.config.json      # Example configuration
+├── fix-ssh-key.js          # SSH key fix utility
+├── package.json            # Package definition
+├── README.md               # Documentation
+├── setup-ssh.js            # SSH setup utility
+└── test.js                 # Tests
+```
 
-- **Current Version**: 0.5.4
-- **Previous Versions**: 0.5.3, 0.5.2, 0.5.1, 0.5.0, 0.4.7, 0.4.6, 0.4.5, 0.4.4, 0.4.3, 0.4.1
+## Architecture
 
-## Core Components
+DreamHost Deployer follows a modular architecture with clear separation of concerns:
 
-### 1. Deployment System
-- **Main Deploy Function** (`deploy.js`): Orchestrates the entire deployment process
-- **SSH/SCP Implementation** (`deploy.js:deployWithNativeSSH`): Cross-platform file transfer
-- **Build Integration** (`deploy.js`): Runs build process before deployment
-  - Support for various frameworks including specialized Vite support
-  - Build output directory deployment
-  - Live build output streaming
-  - Framework-specific error handling
+### 1. CLI Layer (`bin/cli.js`)
 
-### 2. Server Management
-- **Server Checks** (`src/utils/server-check.js`): Validates server environment
-- **SSH Key Setup** (`setup-ssh.js`): Simplifies SSH key authentication
-- **SSH Key Repair** (`fix-ssh-key.js`): Fixes common SSH key issues
+- Handles user interaction through command-line interface
+- Parses command-line arguments and options
+- Provides an interactive menu for easy access to features
+- Delegates to appropriate command modules
 
-### 3. CLI Interface
-- **Command Line Interface** (`bin/cli.js`): Provides easy-to-use commands
-- **Interactive Menu** (`bin/cli.js`): User-friendly interface for all features
-- **Project-specific Settings** (`bin/cli.js`): Framework-specific configurations
+### 2. Command Layer (`src/commands/`)
 
-## Special Features
+- Implements specific commands (deploy, setup-node, etc.)
+- Handles command-specific logic and workflows
+- Uses utility modules for shared functionality
 
-### 1. Vite Project Support (v0.5.6+)
-- **Auto-detection**: Identifies Vite projects through configuration files and dependencies
-- **Optimized Settings**: Uses Vite-specific defaults (dist directory, npm run build)
-- **Specialized Exclusions**: Excludes source files and config files appropriately
-- **Targeted Error Handling**: Provides Vite-specific solutions for common build issues
+### 3. Utility Layer (`src/utils/`)
 
-### 2. Target Directory Management
-- **Clean Option**: Removes existing files before deployment
-- **Update Option**: Preserves non-conflicting files during deployment
+- Provides reusable functionality across commands
+- Implements core features like deployment, configuration management, etc.
+- Handles low-level operations
 
-### 3. Connection Handling 
-- **SSH2 Library Integration**: More reliable SSH connections
-- **Batch File Transfers**: Improved stability and performance
-- **Comprehensive Error Handling**: Better recovery from connection issues
+### 4. Core Modules
 
-## Configuration System
-- **Config File Management** (`deploy.js:loadOrCreateConfig`): Loads or creates JSON configuration
-- **Framework Detection**: Auto-detects project type and suggests appropriate settings
-- **Interactive Configuration**: Guides users through setup process
+- **deploy.js**: Entry point for deployment functionality
+- **setup-ssh.js**: Handles SSH key setup and management
+- **fix-ssh-key.js**: Fixes SSH key permissions
 
-## Documentation
-- **Release Notes**: Version-specific details about features and changes
-- **Changelog**: History of all updates and improvements
-- **Project Map**: This document providing system overview
+## Key Components
 
-## Technical Decisions
+### Configuration Management (`src/utils/config-manager.js`)
 
-### 1. Cross-Platform Compatibility
-- **Native SSH/SCP**: Primary deployment method for Windows/macOS/Linux
-- **Fallback Mechanisms**: Alternative methods if primary fails
-- **Path Handling**: Consistent path normalization across platforms
+- Loads configuration from file or environment variables
+- Validates configuration for required settings
+- Creates new configuration files interactively
+- Detects project type for framework-specific settings
 
-### 2. Build Integration Design
-- **Framework Agnostic**: Core support for any build system
-- **Framework-Specific Optimizations**: Special handling for known frameworks
-- **Error Recovery**: Options to continue deployment despite build issues
+### Deployment (`src/utils/deployment.js`)
 
-### 3. Vite-Specific Optimizations (v0.5.6+)
-- **Default Directory**: Using "dist" instead of generic "build"
-- **Source Exclusions**: Preventing unnecessary source files from being deployed
-- **Output Verification**: Ensuring build output matches expected Vite structure
+- Handles the actual deployment process
+- Supports both rsync and SCP deployment methods
+- Implements dry run mode to preview changes
+- Provides rollback capability for failed deployments
+- Shows progress bars for large deployments
 
-## Usage Flow
+### Build Integration (`src/utils/build-integration.js`)
 
-1. **Initial Setup**:
-   - Run `dreamhost-deployer setup-ssh` to configure SSH connection
-   - Optionally run `dreamhost-deployer setup-node` to set up Node.js on server
+- Manages build process for various JavaScript frameworks
+- Automatically detects project type
+- Runs build commands and validates output
+- Provides framework-specific optimizations
 
-2. **Deployment**:
-   - Run `dreamhost-deployer deploy` to start deployment
-   - Tool checks target directory for existing files
-   - User chooses to update, clean, or cancel
-   - Tool creates directory structure and transfers files
-   - Tool provides next steps based on web server type
+### Server Checks (`src/utils/server-check.js`)
 
-3. **Troubleshooting**:
-   - Run `dreamhost-deployer check-server` to verify server environment
-   - Run `dreamhost-deployer fix-ssh-key` to resolve SSH key issues
+- Verifies server environment (SSH, Node.js, etc.)
+- Helps set up required components on the server
+- Provides diagnostic information for troubleshooting
+
+## Workflow
+
+1. **Configuration**: DreamHost Deployer first loads configuration (from file or environment variables)
+2. **Validation**: Configuration is validated to ensure required settings are present
+3. **Build** (if enabled): The project is built using the specified build command
+4. **Deployment**: Files are transferred to the DreamHost server using rsync or SCP
+5. **Rollback** (if needed): If deployment fails, the previous version can be restored
+
+## Environment Variables
+
+DreamHost Deployer supports configuration via environment variables, which is useful for CI/CD environments:
+
+| Environment Variable | Description |
+|---------------------|-------------|
+| DREAMHOST_HOST | DreamHost server hostname |
+| DREAMHOST_USERNAME | SSH username |
+| DREAMHOST_REMOTE_PATH | Path on the server |
+| DREAMHOST_LOCAL_PATH | Local path to deploy from |
+| DREAMHOST_PASSWORD | SSH password (optional) |
+| DREAMHOST_PRIVATE_KEY_PATH | Path to SSH private key |
+| DREAMHOST_WEB_SERVER | Web server type (Apache/Nginx) |
+| DREAMHOST_BUILD_INTEGRATION | Enable build integration |
+| DREAMHOST_BUILD_COMMAND | Build command |
+| DREAMHOST_BUILD_OUTPUT_DIR | Build output directory |
+| DREAMHOST_EXCLUDE | Files/directories to exclude |
+
+## Framework Support
+
+DreamHost Deployer provides optimized support for various JavaScript frameworks:
+
+- **Vite**: Automatically detects Vite projects and configures appropriate settings
+- **Create React App**: Supports CRA projects with build integration
+- **Next.js**: Supports Next.js static exports
+- **Gatsby**: Supports Gatsby sites
+- **Nuxt.js**: Supports Nuxt.js static sites
+- **Vue CLI**: Supports Vue CLI projects
+- **SvelteKit**: Supports SvelteKit projects
+- **Angular**: Supports Angular projects
 
 ## Future Development
 
-- Add rollback functionality for failed deployments
-- Implement differential deployments (only transfer changed files)
-- Add support for custom deployment hooks (pre/post-deployment scripts)
-- Enhance logging and reporting features
+Planned features and improvements:
 
-## Project Structure
-- `bin/` - Contains the CLI entry point
-  - `cli.js` - Main CLI entry point that handles command-line arguments using Commander.js
-    - Includes interactive menu for better user experience
-    - Provides color-coded output for better readability
-    - Implements follow-up actions based on command results
-- `src/` - Source code directory
-  - `commands/` - Command implementations
-    - `setup-node.js` - NVM and Node.js setup on DreamHost server
-      - Supports latest Node.js LTS versions (22.14.0, 20.18.3, 18.20.6)
-      - Uses NVM 0.40.1 for Node.js version management
-  - `utils/` - Utility functions
-    - `server-check.js` - Utility for checking server environment (NVM and Node.js versions)
-      - Includes SSH connection verification and authentication diagnostics
-      - Supports multiple authentication methods with fallbacks
-      - Provides detailed troubleshooting guidance
-      - Checks for latest recommended Node.js and NVM versions
-- `templates/` - Configuration templates
-  - `deploy.config.template.json` - Template for deployment configuration
-- `docs/` - Documentation
-  - `CHANGELOG.md` - Project changelog
-  - `project-map.md` - This file, documenting the project structure
-  - `npm-publishing-guide.md` - Guide for publishing the package to npm
-  - `windows-deployment-guide.md` - Detailed guide for Windows users
-
-## Dependencies
-- `commander` - Command-line argument parsing
-- `chalk` - Terminal text styling
-- `fs-extra` - Enhanced file system operations
-- `inquirer` - Interactive command-line user interfaces
-- `ssh2` - SSH client for Node.js
-- `minimatch` (v5.1.0) - Pattern matching for file paths 
+1. **Testing**: Comprehensive test suite for all components
+2. **CI/CD Integration**: Better support for CI/CD pipelines
+3. **Incremental Deployments**: Smart detection of changed files
+4. **Multi-site Deployment**: Support for deploying to multiple sites
+5. **Plugin System**: Extensibility through plugins 

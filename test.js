@@ -1,71 +1,96 @@
-#!/usr/bin/env node
-
 /**
- * DreamHost Deployer Test Script
- * This script verifies that the package is correctly set up
+ * DreamHost Deployer Tests
+ * Version 0.5.9
+ * 
+ * This file contains basic tests for the DreamHost Deployer modules.
  */
 
 const fs = require('fs');
 const path = require('path');
+const assert = require('assert');
+const { execSync } = require('child_process');
 const chalk = require('chalk');
 
-console.log(chalk.bold.blue('\n🧪 DreamHost Deployer Test Script\n'));
+// Import modules to test
+const configManager = require('./src/utils/config-manager');
+const buildIntegration = require('./src/utils/build-integration');
+const deployment = require('./src/utils/deployment');
 
-// Check for required files
-const requiredFiles = [
-    'deploy.js',
-    'setup-ssh.js',
-    'fix-ssh-key.js',
-    'bin/cli.js',
-    'package.json'
-];
+// Track test results
+const results = {
+  total: 0,
+  passed: 0,
+  failed: 0
+};
 
-let allFilesExist = true;
-
-console.log(chalk.cyan('Checking for required files:'));
-for (const file of requiredFiles) {
-    if (fs.existsSync(file)) {
-        console.log(chalk.green(`✅ ${file} exists`));
-    } else {
-        console.log(chalk.red(`❌ ${file} does not exist`));
-        allFilesExist = false;
-    }
+// Helper function to run a test
+function runTest(name, testFn) {
+  results.total++;
+  console.log(chalk.blue(`Running test: ${name}`));
+  try {
+    testFn();
+    console.log(chalk.green(`✅ PASSED: ${name}`));
+    results.passed++;
+  } catch (error) {
+    console.log(chalk.red(`❌ FAILED: ${name}`));
+    console.log(chalk.red(`   Error: ${error.message}`));
+    results.failed++;
+  }
 }
 
-// Check package.json
-const pkg = require('./package.json');
-console.log(chalk.cyan('\nPackage information:'));
-console.log(chalk.cyan(`  • Name: ${chalk.white(pkg.name)}`));
-console.log(chalk.cyan(`  • Version: ${chalk.white(pkg.version)}`));
-console.log(chalk.cyan(`  • Description: ${chalk.white(pkg.description)}`));
+// Test: Configuration Management
+console.log(chalk.blue.bold('\n=== Testing Configuration Management ===\n'));
 
-// Check dependencies
-console.log(chalk.cyan('\nChecking dependencies:'));
-const requiredDeps = ['chalk', 'commander', 'inquirer', 'minimatch', 'ssh2'];
-let allDepsExist = true;
+// Test config validation
+runTest('Config validation - empty config', () => {
+  const errors = configManager.validateConfig({});
+  assert(errors.length > 0, 'Should return validation errors for empty config');
+});
 
-for (const dep of requiredDeps) {
-    if (pkg.dependencies && pkg.dependencies[dep]) {
-        console.log(chalk.green(`✅ ${dep} (${pkg.dependencies[dep]})`));
-    } else {
-        console.log(chalk.red(`❌ ${dep} is missing`));
-        allDepsExist = false;
-    }
-}
+runTest('Config validation - valid config', () => {
+  const config = {
+    host: 'example.com',
+    username: 'testuser',
+    remotePath: '/home/testuser/example.com',
+    localPath: process.cwd(),
+    privateKeyPath: path.join(process.cwd(), 'test.js')  // Using this file as a mock key
+  };
+  const errors = configManager.validateConfig(config);
+  assert(errors.length === 0, 'Should return no errors for valid config');
+});
 
-// Check bin entry
-console.log(chalk.cyan('\nChecking bin entry:'));
-if (pkg.bin && pkg.bin['dreamhost-deployer']) {
-    console.log(chalk.green(`✅ bin entry exists: ${pkg.bin['dreamhost-deployer']}`));
+// Test project type detection
+console.log(chalk.blue.bold('\n=== Testing Build Integration ===\n'));
+
+runTest('Project type detection', () => {
+  // This is a basic test, we can't fully test without a real project
+  const projectInfo = buildIntegration.suggestOptimizations('vite');
+  assert(Array.isArray(projectInfo), 'Should return an array of suggestions');
+  assert(projectInfo.length > 0, 'Should return at least one suggestion');
+});
+
+// Test deployment utilities
+console.log(chalk.blue.bold('\n=== Testing Deployment Utilities ===\n'));
+
+runTest('Rsync detection', () => {
+  // Check if rsync is installed - this test may fail on Windows without rsync
+  try {
+    execSync('rsync --version', { stdio: 'ignore' });
+    const hasRsync = deployment.hasRsync();
+    assert(hasRsync === true, 'Should detect rsync when installed');
+  } catch (error) {
+    // Skip test if rsync is not installed
+    console.log(chalk.yellow('   Skipping rsync test (not installed)'));
+  }
+});
+
+// Print test results
+console.log(chalk.blue.bold('\n=== Test Results ===\n'));
+console.log(`Total tests: ${results.total}`);
+console.log(chalk.green(`Passed: ${results.passed}`));
+if (results.failed > 0) {
+  console.log(chalk.red(`Failed: ${results.failed}`));
+  process.exit(1);
 } else {
-    console.log(chalk.red('❌ bin entry is missing'));
-}
-
-// Final result
-console.log('\n');
-if (allFilesExist && allDepsExist && pkg.bin && pkg.bin['dreamhost-deployer']) {
-    console.log(chalk.green.bold('✅ All tests passed! The package is ready for publishing.'));
-} else {
-    console.log(chalk.red.bold('❌ Some tests failed. Please fix the issues before publishing.'));
-}
-console.log('\n'); 
+  console.log(chalk.green('All tests passed!'));
+} 

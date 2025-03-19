@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DreamHost Deployer - Deployment</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .terminal {
+      width: 800px;
+      background-color: #282a36;
+      border-radius: 6px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      background-color: #1e1f29;
+      border-bottom: 1px solid #333;
+    }
+    .terminal-buttons {
+      display: flex;
+      margin-right: 10px;
+    }
+    .terminal-button {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .terminal-button.red {
+      background-color: #ff5f56;
+    }
+    .terminal-button.yellow {
+      background-color: #ffbd2e;
+    }
+    .terminal-button.green {
+      background-color: #27c93f;
+    }
+    .terminal-title {
+      color: #f8f8f2;
+      font-size: 14px;
+      flex-grow: 1;
+      text-align: center;
+    }
+    .terminal-body {
+      padding: 15px;
+      color: #f8f8f2;
+      font-family: 'SF Mono', Monaco, Menlo, Consolas, 'Ubuntu Mono', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: auto;
+      max-height: 500px;
+      white-space: pre-wrap;
+    }
+    .blue {
+      color: #6272a4;
+    }
+    .green {
+      color: #50fa7b;
+    }
+    .yellow {
+      color: #f1fa8c;
+    }
+    .red {
+      color: #ff5555;
+    }
+    .cyan {
+      color: #8be9fd;
+    }
+    .magenta {
+      color: #ff79c6;
+    }
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-buttons">
+        <div class="terminal-button red"></div>
+        <div class="terminal-button yellow"></div>
+        <div class="terminal-button green"></div>
+      </div>
+      <div class="terminal-title">DreamHost Deployer - Deployment</div>
+    </div>
+    <div class="terminal-body"><span class="blue">╔══════════════════════════════════╗</span>
+<span class="blue">║</span>        <span class="bold">DREAMHOST DEPLOYMENT</span>         <span class="blue">║</span>
+<span class="blue">╚══════════════════════════════════╝</span>
+
+<span class="blue">╔══════════════════════════════════════════════════╗</span>
+<span class="blue">║</span>               <span class="bold">DEPLOYMENT SUMMARY</span>               <span class="blue">║</span>
+<span class="blue">╚══════════════════════════════════════════════════╝</span>
+
+╔═══════════════╤════════════════════════════════════╗
+║ <span class="cyan">Setting</span>       │ <span class="cyan">Value</span>                            ║
+╟───────────────┼────────────────────────────────────╢
+║ Host          │ example.dreamhost.com               ║
+║ Username      │ username                            ║
+║ Remote Path   │ /home/username/example.com          ║
+║ Local Path    │ /Users/username/project/dist        ║
+║ Authentication│ SSH Key (~/.ssh/id_rsa)             ║
+║ Web Server    │ Apache                              ║
+╚═══════════════╧════════════════════════════════────╝
+
+? <span class="cyan">Start deployment?</span> <span class="green">Yes</span>
+
+<span class="blue">ℹ Starting deployment...</span>
+
+<span class="cyan">[=========================================] | 100% || 24/24 Files</span>
+
+<span class="green">✨ Deployment completed successfully!</span>
+
+<span class="blue">╔════════════════════════════════════════════════════════════════════════════╗</span>
+<span class="blue">║</span> <span class="bold">React Project Optimization Tips</span>                                            <span class="blue">║</span>
+<span class="blue">║</span>                                                                        <span class="blue">║</span>
+<span class="blue">║</span> • Enable Gzip compression for JS and CSS files                         <span class="blue">║</span>
+<span class="blue">║</span> • Configure proper cache headers for static assets                     <span class="blue">║</span>
+<span class="blue">║</span> • Set up proper routing with .htaccess for client-side routing         <span class="blue">║</span>
+<span class="blue">║</span> • Consider implementing code splitting for better performance          <span class="blue">║</span>
+<span class="blue">╚════════════════════════════════════════════════════════════════════════════╝</span></div>
+  </div>
+</body>
+</html>

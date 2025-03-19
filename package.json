@@ -1,7 +1,7 @@
 {
   "name": "dreamhost-deployer",
-  "version": "0.5.8",
-  "description": "A CLI tool for deploying websites to DreamHost with optimized support for Vite projects",
+  "version": "0.6.0",
+  "description": "A stylish, interactive CLI tool for deploying websites to DreamHost shared hosting with automated build integration",
   "main": "deploy.js",
   "bin": {
     "dreamhost-deployer": "./bin/cli.js"
@@ -19,7 +19,9 @@
     "cli",
     "vite",
     "build-integration",
-    "static-site"
+    "static-site",
+    "interactive",
+    "user-friendly"
   ],
   "author": "jakerains",
   "license": "MIT",
@@ -29,12 +31,19 @@
     "url": "https://github.com/jakerains/dreamhost-deployer"
   },
   "dependencies": {
+    "boxen": "^5.1.2",
     "chalk": "^4.1.2",
+    "cli-progress": "^3.12.0",
+    "cli-table3": "^0.6.3",
     "commander": "^9.5.0",
+    "figlet": "^1.7.0",
     "fs-extra": "^10.1.0",
+    "gradient-string": "^2.0.2",
     "inquirer": "^8.2.5",
     "minimatch": "^5.1.0",
-    "ssh2": "^1.16.0"
+    "ora": "^5.4.1",
+    "ssh2": "^1.16.0",
+    "terminal-link": "^2.1.1"
   },
   "engines": {
     "node": ">=14.0.0"

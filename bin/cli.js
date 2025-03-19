@@ -2,14 +2,16 @@
 
 /**
  * DreamHost Deployer CLI
- * Version 0.5.6 - Enhanced for Vite projects with build integration
+ * Version 0.6.0 - Enhanced with stylish UI, modular structure, and more features
  * 
  * Features:
+ * - Stylish interactive terminal interface
  * - Simple deployment to DreamHost via SSH/SCP
- * - Interactive CLI menu
  * - Server environment checks
  * - Build integration for modern frameworks
- * - Optimized for Vite projects
+ * - Dry run mode to preview deployments
+ * - Automatic rollback for failed deployments
+ * - Progress bars for large deployments
  */
 
 const path = require('path');
@@ -19,10 +21,11 @@ const setupSsh = require('../setup-ssh');
 const setupNode = require('../src/commands/setup-node');
 const fixSshKey = require('../fix-ssh-key');
 const { checkServerEnvironment } = require('../src/utils/server-check');
+const buildIntegration = require('../src/utils/build-integration');
+const ui = require('../src/utils/ui');
 const fs = require('fs');
 const pkg = require('../package.json');
 const inquirer = require('inquirer');
-const chalk = require('chalk');
 
 // Set up the CLI program
 program
@@ -35,18 +38,41 @@ program
   .command('menu', { isDefault: true })
   .description('Show interactive menu of available commands')
   .action(async () => {
-    console.log(chalk.blue.bold(`\n🚀 DreamHost Deployer v${pkg.version}\n`));
+    ui.showAppHeader();
     
+    // Create emoji-filled, categorized menu
     const choices = [
+      {
+        name: 'DEPLOYMENT',
+        type: 'separator'
+      },
       {
         name: '🚀 Deploy website to DreamHost',
         value: 'deploy',
         description: 'Deploy your website files to DreamHost server'
       },
       {
+        name: '🔍 Dry run (preview deployment)',
+        value: 'dry-run',
+        description: 'Preview what files would be deployed without making changes'
+      },
+      {
         name: '🔨 Run build process only',
         value: 'build',
         description: 'Build your project without deploying'
+      },
+      {
+        name: 'CONFIGURATION',
+        type: 'separator'
+      },
+      {
+        name: '📋 Project-specific settings',
+        value: 'project-settings',
+        description: 'Configure build settings for various frameworks'
+      },
+      {
+        name: 'SERVER SETUP',
+        type: 'separator'
       },
       {
         name: '🔑 Setup SSH key authentication',
@@ -64,14 +90,23 @@ program
         description: 'Check Node.js and NVM on your DreamHost server'
       },
       {
+        name: '📦 Setup Node.js on server',
+        value: 'setup-node',
+        description: 'Install Node.js and NVM on your DreamHost server'
+      },
+      {
+        name: 'INFORMATION',
+        type: 'separator'
+      },
+      {
         name: '❓ About DreamHost Deployer',
         value: 'about',
         description: 'Show information about this tool'
       },
       {
-        name: '📋 Project-specific settings',
-        value: 'project-settings',
-        description: 'Configure build settings for Vite and other frameworks'
+        name: '📑 Show documentation',
+        value: 'docs',
+        description: 'Display helpful documentation and links'
       },
       {
         name: '❌ Exit',
@@ -87,23 +122,42 @@ program
         message: 'What would you like to do?',
         loop: false,
         pageSize: choices.length,
-        choices: choices.map(choice => ({
-          name: `${choice.name} - ${choice.description}`,
-          value: choice.value
-        }))
+        choices: choices.map(choice => {
+          if (choice.type === 'separator') {
+            return new inquirer.Separator(`\n${choice.name}\n`);
+          }
+          return {
+            name: `${choice.name.padEnd(35)} ${choice.description}`,
+            value: choice.value
+          };
+        })
       }
     ]);
     
+    // Add a short delay for visual effect
+    const actionSpinner = ui.spinner('Loading action...');
+    actionSpinner.start();
+    await new Promise(resolve => setTimeout(resolve, 800));
+    actionSpinner.stop();
+    
     switch (action) {
       case 'deploy':
-        deploy.deploy();
+        deploy.deploy({ dryRun: false, rollbackEnabled: true });
+        break;
+      case 'dry-run':
+        deploy.deploy({ dryRun: true, rollbackEnabled: false });
         break;
       case 'build':
         try {
-          console.log(chalk.blue('🔨 Running build process...'));
+          const buildSpinner = ui.spinner('Preparing build process...');
+          buildSpinner.start();
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          buildSpinner.stop();
+          
+          console.log(ui.info('Running build process...'));
           await deploy.runBuildOnly();
         } catch (error) {
-          console.error(chalk.red(`Error: ${error.message}`));
+          console.error(ui.error(`Build failed: ${error.message}`));
         }
         break;
       case 'setup-ssh':
@@ -118,61 +172,21 @@ program
       case 'fix-ssh-key':
         fixSshKey.run();
         break;
-      case 'project-settings':
-        try {
-          // Show project-specific settings menu
-          const { projectType } = await inquirer.prompt([
-            {
-              type: 'list',
-              name: 'projectType',
-              message: 'What type of project are you working with?',
-              choices: [
-                { name: 'Vite (React, Vue, Svelte, etc.)', value: 'vite' },
-                { name: 'Create React App (CRA)', value: 'cra' },
-                { name: 'Next.js', value: 'nextjs' },
-                { name: 'Other/Manual configuration', value: 'other' }
-              ]
-            }
-          ]);
-          
-          // Handle different project types
-          switch (projectType) {
-            case 'vite':
-              console.log(chalk.green('\n📦 Vite Project Settings'));
-              console.log(chalk.cyan('For Vite projects, the deployer will:'));
-              console.log(chalk.cyan('- Use "dist" as the default build output directory'));
-              console.log(chalk.cyan('- Run "npm run build" as the default build command'));
-              console.log(chalk.cyan('- Add Vite-specific exclusions for source files'));
-              console.log(chalk.cyan('- Provide optimized error handling for Vite builds'));
-              
-              console.log(chalk.blue('\nℹ️ This will be applied when you run deploy.'));
-              break;
-              
-            case 'cra':
-            case 'nextjs':
-            case 'other':
-              console.log(chalk.yellow('\nℹ️ Configuration for this project type will be done during deployment.'));
-              break;
-          }
-        } catch (error) {
-          console.error(chalk.red(`Error: ${error.message}`));
-        }
-        break;
       case 'about':
-        console.log(chalk.green('\n📦 DreamHost Deployer'));
-        console.log(chalk.blue('Version: 0.5.6'));
-        console.log(chalk.blue('A tool for deploying websites to DreamHost shared hosting.'));
-        console.log(chalk.blue('Features:'));
-        console.log(chalk.blue('- Simple deployment to DreamHost via SSH/SCP'));
-        console.log(chalk.blue('- Interactive CLI menu'));
-        console.log(chalk.blue('- Server environment checks'));
-        console.log(chalk.blue('- Build integration for modern frameworks'));
-        console.log(chalk.blue('- Special optimizations for Vite projects'));
-        console.log(chalk.blue('- Target directory management'));
-        console.log(chalk.blue('- SSH key setup and management'));
+        showAbout();
+        break;
+      case 'docs':
+        showDocs();
+        break;
+      case 'project-settings':
+        await showProjectSettings();
         break;
       case 'exit':
-        console.log(chalk.blue('Goodbye! 👋'));
+        const exitSpinner = ui.spinner('Exiting...');
+        exitSpinner.start();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        exitSpinner.stop();
+        console.log(ui.success('Thanks for using DreamHost Deployer! 👋'));
         process.exit(0);
         break;
     }
@@ -181,120 +195,270 @@ program
 // Deploy command
 program
   .command('deploy')
-  .description('Deploy your website to DreamHost using native SSH/SCP')
-  .action(() => {
-    deploy.deploy();
+  .description('Deploy your website to DreamHost')
+  .option('-c, --config <path>', 'Path to config file')
+  .option('-d, --dry-run', 'Perform a dry run (preview deployment)')
+  .option('--no-rollback', 'Disable automatic rollback on failure')
+  .action((options) => {
+    deploy.deploy({
+      configPath: options.config,
+      dryRun: options.dryRun || false,
+      rollbackEnabled: options.rollback !== false
+    });
+  });
+
+// Build only command
+program
+  .command('build')
+  .description('Run the build process without deploying')
+  .action(async () => {
+    try {
+      console.log(ui.info('Running build process...'));
+      await deploy.runBuildOnly();
+    } catch (error) {
+      console.error(ui.error(`Build failed: ${error.message}`));
+    }
   });
 
 // Setup SSH command
 program
   .command('setup-ssh')
-  .description('Set up SSH configuration for deployment')
+  .description('Setup SSH key authentication for DreamHost')
   .action(() => {
     setupSsh.run();
   });
 
-// Initialize command
-program
-  .command('init')
-  .description('Initialize a new deployment configuration')
-  .action(() => {
-    setupSsh.initConfig();
-  });
-
-// Setup Node.js command
-program
-  .command('setup-node')
-  .description('Set up NVM and Node.js on your DreamHost server')
-  .action(() => {
-    setupNode.run();
-  });
-
-// Fix SSH Key command
+// Fix SSH key command
 program
   .command('fix-ssh-key')
-  .description('Fix SSH key issues by switching to Ed25519 keys')
+  .description('Fix SSH key permissions')
   .action(() => {
     fixSshKey.run();
   });
 
-// Check server environment command
+// Server check command
 program
   .command('check-server')
-  .description('Check if your DreamHost server has the required NVM and Node.js versions')
+  .description('Check Node.js environment on DreamHost server')
   .action(async () => {
     await checkServerCmd();
   });
 
-// Helper function for check-server command
+// Setup Node command
+program
+  .command('setup-node')
+  .description('Setup Node.js on DreamHost server')
+  .action(() => {
+    setupNode.run();
+  });
+
+// Project settings command
+program
+  .command('project-settings')
+  .description('Configure project-specific settings')
+  .action(async () => {
+    await showProjectSettings();
+  });
+
+// Helper function for check server command
 async function checkServerCmd() {
+  ui.sectionHeader('SERVER ENVIRONMENT CHECK');
+  
+  // Load config to get server details
+  const configPath = path.join(process.cwd(), 'deploy.config.json');
+  
+  if (!fs.existsSync(configPath)) {
+    console.log(ui.warning('No configuration file found. Please create one first.'));
+    return;
+  }
+  
   try {
-    // Load configuration
-    const configPath = path.resolve(process.cwd(), 'deploy.config.json');
-    
-    if (!fs.existsSync(configPath)) {
-      console.error(chalk.red('❌ Configuration file not found!'));
-      console.log(chalk.yellow('Please run \'dreamhost-deployer init\' to create a configuration file.'));
-      process.exit(1);
-    }
+    const checkSpinner = ui.spinner('Checking server environment...');
+    checkSpinner.start();
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    checkSpinner.stop();
     
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    console.log(chalk.blue.bold('\n🔍 Checking Server Environment\n'));
-    console.log(chalk.cyan('Current configuration:'));
-    console.log(chalk.cyan(`  • Host: ${chalk.white(config.host)}`));
-    console.log(chalk.cyan(`  • Username: ${chalk.white(config.username)}`));
-    console.log(chalk.cyan(`  • Web Server: ${chalk.white(config.webServer || 'Apache (default)')}\n`));
-    
-    console.log(chalk.yellow('This will check for:'));
-    console.log(chalk.yellow('  • SSH connectivity'));
-    console.log(chalk.yellow('  • NVM installation (recommended version: 0.40.1)'));
-    console.log(chalk.yellow('  • Node.js installation (recommended version: 22.14.0 LTS)'));
-    console.log(chalk.yellow('  • Server configuration for web hosting\n'));
-    
-    const setupNeeded = await checkServerEnvironment(config);
-    
-    if (!setupNeeded) {
-      console.log(chalk.green.bold('\n✅ Your server environment is properly configured!\n'));
-      
-      // Ask if user wants to deploy now
-      const { deployNow } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'deployNow',
-          message: 'Would you like to deploy your website now?',
-          default: true
-        }
-      ]);
-      
-      if (deployNow) {
-        deploy.deploy();
-      }
-    } else {
-      console.log(chalk.yellow.bold('\n⚠️ Your server environment needs setup.\n'));
-      
-      // Ask if user wants to set up Node.js now
-      const { setupNow } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'setupNow',
-          message: 'Would you like to set up NVM and Node.js on your server now?',
-          default: true
-        }
-      ]);
-      
-      if (setupNow) {
-        setupNode.run();
-      } else {
-        console.log(chalk.cyan('\nYou can run \'dreamhost-deployer setup-node\' later to set up NVM and Node.js.'));
-      }
-    }
+    await checkServerEnvironment(config);
   } catch (error) {
-    console.error(chalk.red(`❌ Error checking server environment: ${error.message}`));
-    process.exit(1);
+    console.error(ui.error(`Error checking server: ${error.message}`));
   }
 }
 
-// Parse command line arguments
-program.parse(process.argv);
+// Helper function to show project settings menu
+async function showProjectSettings() {
+  ui.sectionHeader('PROJECT SETTINGS');
+  
+  try {
+    const detectSpinner = ui.spinner('Detecting project type...');
+    detectSpinner.start();
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    detectSpinner.stop();
+    
+    const projectInfo = buildIntegration.detectProjectType();
+    
+    if (projectInfo.type !== 'unknown') {
+      console.log('\n' + ui.info(`${projectInfo.details}`));
+      console.log(ui.projectTypeBadge(projectInfo.type));
+      
+      // Create a table for settings
+      const table = ui.createTable(['Setting', 'Value']);
+      table.push(
+        ['Build Command', projectInfo.buildCommand || 'N/A'],
+        ['Output Directory', projectInfo.outputDir || 'N/A']
+      );
+      console.log('\n' + table.toString());
+      
+      // Show exclusions
+      if (projectInfo.exclude && projectInfo.exclude.length > 0) {
+        console.log('\n' + ui.collapsibleSection('Excluded Files/Directories', 
+          projectInfo.exclude.map(item => `• ${item}`).join('\n')));
+      }
+      
+      // Show optimization tips
+      const suggestions = buildIntegration.suggestOptimizations(projectInfo.type);
+      console.log('\n' + ui.collapsibleSection('Optimization Tips', 
+        suggestions.join('\n')));
+      
+      const { applySettings } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'applySettings',
+          message: 'Would you like to apply these settings to your configuration?',
+          default: true
+        }
+      ]);
+      
+      if (applySettings) {
+        const configSpinner = ui.spinner('Applying configuration settings...');
+        configSpinner.start();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        configSpinner.stop();
+        
+        // Load or create config
+        const configManager = require('../src/utils/config-manager');
+        const configPath = path.join(process.cwd(), 'deploy.config.json');
+        let config = configManager.loadConfig(configPath);
+        
+        if (!config) {
+          console.log(ui.info('Creating new configuration file...'));
+          config = await configManager.createConfig(configPath, projectInfo.type === 'vite');
+        }
+        
+        // Update with detected settings
+        config.buildIntegration = true;
+        config.buildCommand = projectInfo.buildCommand;
+        config.buildOutputDir = projectInfo.outputDir;
+        config.exclude = projectInfo.exclude;
+        
+        // Save updated config
+        configManager.saveConfig(config, configPath);
+        console.log(ui.success('Configuration updated with project-specific settings'));
+      }
+    } else {
+      console.log(ui.warning('Could not automatically detect project type.'));
+      console.log(ui.info('Please configure your build settings manually.'));
+      
+      // Prompt for manual configuration
+      const { setupManually } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'setupManually',
+          message: 'Would you like to set up build integration manually?',
+          default: true
+        }
+      ]);
+      
+      if (setupManually) {
+        const configManager = require('../src/utils/config-manager');
+        const configPath = path.join(process.cwd(), 'deploy.config.json');
+        await configManager.createConfig(configPath, false);
+      }
+    }
+  } catch (error) {
+    console.error(ui.error(`Error: ${error.message}`));
+  }
+}
 
-// If no arguments, show menu (handled by default command) 
+// Helper function to show about information
+function showAbout() {
+  ui.sectionHeader('ABOUT DREAMHOST DEPLOYER');
+  
+  console.log(ui.info(`Version: ${pkg.version}`));
+  console.log(ui.info('A stylish CLI tool for deploying websites to DreamHost servers via SSH'));
+  console.log(ui.link('GitHub Repository', 'https://github.com/jakerains/dreamhost-deployer'));
+  console.log(ui.info('Author: jakerains'));
+  console.log(ui.info('License: MIT'));
+  
+  // Create feature table
+  const featureTable = ui.createTable(['Feature', 'Description']);
+  featureTable.push(
+    ['Easy Deployment', 'Deploy to DreamHost with a single command'],
+    ['SSH Key Management', 'Set up and manage SSH keys for secure deployments'],
+    ['Build Integration', 'Automatic build process for modern frameworks'],
+    ['Dry Run Mode', 'Preview deployments without making changes'],
+    ['Automatic Rollback', 'Revert to previous version if deployment fails'],
+    ['Progress Tracking', 'Visual progress bars for large deployments'],
+    ['Server Configuration', 'Set up Node.js and other requirements on your server'],
+    ['Framework Detection', 'Automatically detect and optimize for your project type']
+  );
+  
+  console.log('\n' + featureTable.toString());
+  
+  // Show supported frameworks
+  console.log('\n' + ui.collapsibleSection('Supported Frameworks', [
+    ui.projectTypeBadge('vite') + ' Vite (React, Vue, Svelte, etc.)',
+    ui.projectTypeBadge('react') + ' Create React App',
+    ui.projectTypeBadge('nextjs') + ' Next.js',
+    ui.projectTypeBadge('gatsby') + ' Gatsby',
+    ui.projectTypeBadge('nuxt') + ' Nuxt.js',
+    ui.projectTypeBadge('vue-cli') + ' Vue CLI',
+    ui.projectTypeBadge('svelte') + ' SvelteKit',
+    ui.projectTypeBadge('angular') + ' Angular'
+  ].join('\n')));
+}
+
+// Helper function to show documentation
+function showDocs() {
+  ui.sectionHeader('DOCUMENTATION');
+  
+  // Quick start guide
+  console.log(ui.collapsibleSection('Quick Start', `
+1. Initialize configuration:
+   ${ui.codeBlock('dreamhost-deployer init')}
+
+2. Set up SSH:
+   ${ui.codeBlock('dreamhost-deployer setup-ssh')}
+
+3. Set up Node.js on server (optional):
+   ${ui.codeBlock('dreamhost-deployer setup-node')}
+
+4. Deploy your website:
+   ${ui.codeBlock('dreamhost-deployer deploy')}
+  `));
+  
+  // Common commands
+  console.log(ui.collapsibleSection('Common Commands', `
+• Deploy website:
+  ${ui.codeBlock('dreamhost-deployer deploy')}
+
+• Preview deployment (dry run):
+  ${ui.codeBlock('dreamhost-deployer deploy --dry-run')}
+
+• Build without deploying:
+  ${ui.codeBlock('dreamhost-deployer build')}
+
+• Configure project settings:
+  ${ui.codeBlock('dreamhost-deployer project-settings')}
+  `));
+  
+  // Helpful links
+  console.log(ui.collapsibleSection('Helpful Links', [
+    ui.link('DreamHost SSH Guide', 'https://help.dreamhost.com/hc/en-us/articles/216041267-SSH-overview'),
+    ui.link('DreamHost Node.js Guide', 'https://help.dreamhost.com/hc/en-us/articles/360029083351-Installing-a-custom-version-of-NVM-and-Node-js'),
+    ui.link('Deployer Documentation', 'https://github.com/jakerains/dreamhost-deployer/blob/main/README.md')
+  ].join('\n')));
+}
+
+// Parse command line arguments
+program.parse(process.argv); 
