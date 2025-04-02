@@ -5,7 +5,7 @@
   <!-- Logo created with SVG -->
   <img src="assets/images/logo.png" alt="DreamHost Deployer Logo" width="150" height="150" />
   
-  ![Version](https://img.shields.io/badge/version-0.6.3-blue.svg?style=flat-square)
+  ![Version](https://img.shields.io/badge/version-0.7.1-blue.svg?style=flat-square)
   ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
   ![Node](https://img.shields.io/badge/node-%3E=14.0.0-brightgreen.svg?style=flat-square)
   
@@ -22,7 +22,7 @@ DreamHost Deployer is a powerful command-line tool that makes deploying websites
 - 🛠️ **Framework Auto-Detection** - Automatically detects Vite, React, Next.js, and more
 - 🔄 **Build Integration** - Runs your build process before deployment
 - 🔙 **Automatic Rollback** - Instantly revert to previous version if deployment fails
-- 🔑 **SSH Key Management** - Simple SSH key setup and permissions fixing
+- 🔑 **Password Authentication** - Simple SSH password authentication setup
 - 📊 **Progress Tracking** - Visual progress bars for large deployments
 - 📋 **Project Templates** - Pre-configured settings for popular frameworks
 - 🔧 **Server Environment Setup** - Easily install Node.js on your DreamHost server
@@ -64,16 +64,13 @@ dreamhost-deployer deploy
    # Select "Initialize project" from the menu
    ```
 
-2. **SSH Key Setup**
+2. **SSH Authentication Setup**
    ```bash
-   # Set up your SSH key for passwordless authentication
+   # Set up password authentication for your DreamHost server
    dreamhost-deployer setup-ssh
-   
-   # If you have permission issues with your SSH key
-   dreamhost-deployer fix-ssh-key
    ```
    
-   After generating or selecting your SSH key, follow the prompts to add it to your DreamHost account via their panel.
+   Follow the prompts to set up and test your password authentication for your DreamHost server.
 
 3. **Server Environment Setup**
    ```bash
@@ -282,11 +279,11 @@ DREAMHOST_VERBOSE_LOGGING=false
 
 You can mix and match environment variables and config file settings. Environment variables take precedence over the configuration file.
 
-## 🔑 SSH Key Setup and Management
+## 🔑 SSH Authentication Setup
 
-Proper SSH key setup is crucial for secure and smooth deployments. DreamHost Deployer provides comprehensive tools for managing your SSH keys.
+Proper SSH authentication setup is crucial for secure and smooth deployments. DreamHost Deployer provides simple tools for setting up password-based authentication.
 
-### Setting Up SSH Keys
+### Setting Up SSH Authentication
 
 ```bash
 # Run the SSH setup wizard
@@ -294,33 +291,17 @@ dreamhost-deployer setup-ssh
 ```
 
 This interactive wizard will:
-1. Check for existing SSH keys on your system
-2. Generate a new key if needed (RSA or Ed25519)
-3. Display your public key for adding to DreamHost
-4. Test the connection to verify it works
-5. Guide you through fixing common issues
+1. Set up password authentication for your DreamHost server
+2. Test the connection to verify it works
+3. Provide an option to save your password for non-interactive deployments (not recommended for security reasons)
+4. Guide you through fixing common connection issues
 
-### Fixing SSH Key Permissions
+### SSH Authentication Best Practices
 
-SSH keys require specific permissions to work correctly. If you're having connection issues:
-
-```bash
-# Fix permissions on your SSH keys
-dreamhost-deployer fix-ssh-key
-```
-
-This tool will:
-1. Check your current SSH key configuration
-2. Fix permissions on the key files (600 for private keys)
-3. Fix permissions on SSH directories (700 for .ssh)
-4. Create or update SSH configuration as needed
-
-### SSH Key Best Practices
-
-- **Use Ed25519 keys** - They're more secure and compact than RSA
-- **Never share your private key** - Only the public key goes on the server
-- **Set a passphrase** - For additional security
-- **Keep a backup** - Store your keys securely
+- **Use strong passwords** - Complex passwords provide better security
+- **Don't save passwords in configuration files** - Enter your password during deployment instead
+- **Consider a password manager** - Store your credentials securely
+- **Update passwords regularly** - Change your DreamHost password periodically
 
 ## 🏗️ Build Integration
 

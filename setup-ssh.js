@@ -165,70 +165,69 @@ async function setupSSH() {
         // Password authentication only
         
         // Password setup
-            console.log(chalk.blue('\n🔑 Setting up password authentication...'));
-            console.log(chalk.cyan('With password authentication, you\'ll be prompted for your password during deployment.'));
-            
-            // Ask if user wants to test the connection now
-            const { testConnection } = await inquirer.prompt([
-                {
-                    type: 'confirm',
-                    name: 'testConnection',
-                    message: 'Would you like to test your SSH connection now?',
-                    default: true
-                }
-            ]);
-            
-            if (testConnection) {
-                console.log(chalk.blue('🔄 Testing SSH connection...'));
-                
-                try {
-                    // Test SSH connection
-                    console.log(chalk.yellow('You will be prompted for your password.'));
-                    console.log(chalk.yellow('This is normal and expected with password authentication.'));
-                    
-                    const sshCmd = `ssh ${config.username}@${config.host} "echo 'Connection successful'"`;
-                    execSync(sshCmd, { stdio: 'inherit' });
-                    
-                    console.log(chalk.green('✅ SSH connection successful!'));
-                } catch (error) {
-                    console.error(chalk.red(`❌ SSH connection failed: ${error.message}`));
-                    console.log(chalk.yellow('⚠️ Please check your username and host and try again.'));
-                    console.log(chalk.yellow('⚠️ Make sure you have SSH access to your DreamHost server.'));
-                }
+        console.log(chalk.blue('\n🔑 Setting up password authentication...'));
+        console.log(chalk.cyan('With password authentication, you\'ll be prompted for your password during deployment.'));
+        
+        // Ask if user wants to test the connection now
+        const { testConnection } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'testConnection',
+                message: 'Would you like to test your SSH connection now?',
+                default: true
             }
+        ]);
+        
+        if (testConnection) {
+            console.log(chalk.blue('🔄 Testing SSH connection...'));
             
-            // Ask if user wants to save a password for non-interactive use
-            const { savePassword } = await inquirer.prompt([
+            try {
+                // Test SSH connection
+                console.log(chalk.yellow('You will be prompted for your password.'));
+                console.log(chalk.yellow('This is normal and expected with password authentication.'));
+                
+                const sshCmd = `ssh ${config.username}@${config.host} "echo 'Connection successful'"`;
+                execSync(sshCmd, { stdio: 'inherit' });
+                
+                console.log(chalk.green('✅ SSH connection successful!'));
+            } catch (error) {
+                console.error(chalk.red(`❌ SSH connection failed: ${error.message}`));
+                console.log(chalk.yellow('⚠️ Please check your username and host and try again.'));
+                console.log(chalk.yellow('⚠️ Make sure you have SSH access to your DreamHost server.'));
+            }
+        }
+        
+        // Ask if user wants to save a password for non-interactive use
+        const { savePassword } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'savePassword',
+                message: 'Would you like to save your password for non-interactive use? (Not recommended for security reasons)',
+                default: false
+            }
+        ]);
+        
+        if (savePassword) {
+            const { password } = await inquirer.prompt([
                 {
-                    type: 'confirm',
-                    name: 'savePassword',
-                    message: 'Would you like to save your password for non-interactive use? (Not recommended for security reasons)',
-                    default: false
+                    type: 'password',
+                    name: 'password',
+                    message: 'Enter your SSH password:',
+                    mask: '*'
                 }
             ]);
             
-            if (savePassword) {
-                const { password } = await inquirer.prompt([
-                    {
-                        type: 'password',
-                        name: 'password',
-                        message: 'Enter your SSH password:',
-                        mask: '*'
-                    }
-                ]);
-                
-                config.password = password;
+            config.password = password;
+            fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+            console.log(chalk.green('✅ Password saved to configuration.'));
+            console.log(chalk.yellow('⚠️ Note: Storing passwords in plain text is not secure.'));
+        } else {
+            // Remove password if it exists
+            if (config.password) {
+                delete config.password;
                 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-                console.log(chalk.green('✅ Password saved to configuration.'));
-                console.log(chalk.yellow('⚠️ Note: Storing passwords in plain text is not secure.'));
-            } else {
-                // Remove password if it exists
-                if (config.password) {
-                    delete config.password;
-                    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-                }
-                console.log(chalk.green('✅ You will be prompted for your password during deployment.'));
             }
+            console.log(chalk.green('✅ You will be prompted for your password during deployment.'));
         }
         
         console.log(chalk.green('\n✅ SSH setup completed!'));
@@ -253,7 +252,6 @@ async function run() {
 module.exports = {
     run,
     initConfig,
-    generateSSHKey,
     setupSSH
 };
 

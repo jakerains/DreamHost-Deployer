@@ -2,6 +2,24 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.7.1] - 2025-04-02
+
+### Fixed
+- Fixed syntax error in setup-ssh.js causing "Missing catch or finally after try" error
+  - Properly structured try-catch block to handle configuration loading and SSH setup
+  - Fixed indentation issues that were causing syntax errors
+  - Removed references to deprecated generateSSHKey function from exports
+  - Enhanced code structure for better maintainability
+
+## [0.7.0] - 2025-04-02
+
+### Changed
+- Removed SSH key functionality to simplify authentication
+  - Switched to password-based authentication only for better cross-platform compatibility
+  - Streamlined the configuration process for easier setup
+  - Improved password handling during deployment
+  - Added option to mask password input during configuration
+
 ## [0.6.6] - 2025-04-02
 
 ### Fixed
