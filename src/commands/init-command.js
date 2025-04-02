@@ -93,6 +93,10 @@ async function run() {
     '  dreamhost-deployer deploy'
   ]);
   
+  // Exit process after initialization completes
+  process.exit(0);
+  
+  // This will not execute due to process.exit above, but kept for backwards compatibility
   return config;
 }
 
@@ -126,6 +130,10 @@ async function continueWithExistingConfig(config, configPath) {
   // Verify SSH connection and server environment
   await verifySshAndServerEnvironment(config, configPath);
   
+  // Exit process after initialization with existing config completes
+  process.exit(0);
+  
+  // This will not execute due to process.exit above, but kept for backwards compatibility
   return config;
 }
 

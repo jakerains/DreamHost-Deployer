@@ -2,6 +2,14 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.7.2] - 2025-04-02
+
+### Fixed
+- Fixed initialization process hanging after completion
+  - Added explicit process exit after initialization completes
+  - Ensured command returns to the terminal prompt after showing the success message
+  - Improved user experience with cleaner termination behavior
+
 ## [0.7.1] - 2025-04-02
 
 ### Fixed
