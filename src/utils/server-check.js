@@ -185,12 +185,18 @@ async function verifySSHConnection(config) {
             };
             
             // Add private key if available
-            if (config.privateKeyPath && fs.existsSync(config.privateKeyPath)) {
-                try {
-                    authConfig.privateKey = fs.readFileSync(config.privateKeyPath);
-                } catch (err) {
-                    // If we can't read the key, just continue without it
-                    console.log(chalk.yellow(`⚠️ Could not read private key: ${err.message}`));
+            if (config.privateKeyPath) {
+                // Resolve tilde in path if present
+                const resolvedKeyPath = config.privateKeyPath.replace(/^~/, os.homedir());
+                if (fs.existsSync(resolvedKeyPath)) {
+                    try {
+                        authConfig.privateKey = fs.readFileSync(resolvedKeyPath);
+                    } catch (err) {
+                        // If we can't read the key, just continue without it
+                        console.log(chalk.yellow(`⚠️ Could not read private key: ${err.message}`));
+                    }
+                } else {
+                    console.log(chalk.yellow(`⚠️ Private key not found at ${resolvedKeyPath}`));
                 }
             }
             

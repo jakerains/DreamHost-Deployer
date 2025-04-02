@@ -6,6 +6,7 @@ const { Client } = require('ssh2');
 const chalk = require('chalk');
 const minimatch = require('minimatch');
 const cliProgress = require('cli-progress');
+const os = require('os');
 
 const execAsync = promisify(exec);
 
@@ -14,14 +15,39 @@ const execAsync = promisify(exec);
  * Handles the actual deployment process, dry runs, and rollbacks
  */
 
+// Simple logging utility
+function logToFile(message, type = 'info') {
+  const logDir = path.join(process.cwd(), 'logs');
+  const today = new Date().toISOString().split('T')[0];
+  const logFile = path.join(logDir, `dreamhost-deployer-${today}.log`);
+  
+  // Ensure log directory exists
+  try {
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+    
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] [${type.toUpperCase()}] ${message}\n`;
+    
+    fs.appendFileSync(logFile, logEntry);
+  } catch (error) {
+    console.error(chalk.red(`Failed to write to log file: ${error.message}`));
+  }
+}
+
 // Main deployment function
 async function deploy(config, options = {}) {
   const { dryRun = false, rollbackEnabled = true } = options;
   
   try {
+    logToFile(`Starting deployment to ${config.host}:${config.remotePath}`);
+    
     // Validate local path exists
     if (!fs.existsSync(config.localPath)) {
-      throw new Error(`Local path does not exist: ${config.localPath}`);
+      const errorMsg = `Local path does not exist: ${config.localPath}`;
+      logToFile(errorMsg, 'error');
+      throw new Error(errorMsg);
     }
     
     // Create backup for rollback if enabled
@@ -29,33 +55,50 @@ async function deploy(config, options = {}) {
     if (rollbackEnabled && !dryRun) {
       backupPath = await createBackup(config);
       if (backupPath) {
-        console.log(chalk.blue(`📦 Created backup for rollback: ${backupPath}`));
+        const backupMsg = `Created backup for rollback: ${backupPath}`;
+        console.log(chalk.blue(`📦 ${backupMsg}`));
+        logToFile(backupMsg);
       } else {
-        console.log(chalk.yellow('⚠️ Failed to create backup, rollback will not be available'));
+        const backupFailMsg = 'Failed to create backup, rollback will not be available';
+        console.log(chalk.yellow(`⚠️ ${backupFailMsg}`));
+        logToFile(backupFailMsg, 'warning');
       }
     }
     
     // Dry run message
     if (dryRun) {
       console.log(chalk.cyan('🔍 Performing DRY RUN - no actual deployment will occur'));
+      logToFile('Performing DRY RUN deployment');
     }
     
     // Choose deployment method
     if (hasRsync()) {
+      logToFile('Using rsync for deployment');
       await deployWithRsync(config, dryRun);
     } else {
+      logToFile('Using SCP for deployment (rsync not available)');
       await deployWithScp(config, dryRun);
     }
     
     if (!dryRun) {
-      console.log(chalk.green('✅ Deployment completed successfully!'));
+      const successMsg = 'Deployment completed successfully!';
+      console.log(chalk.green(`✅ ${successMsg}`));
+      logToFile(successMsg, 'success');
     } else {
-      console.log(chalk.cyan('🔍 Dry run completed - deployment looks good!'));
+      const dryRunMsg = 'Dry run completed - deployment looks good!';
+      console.log(chalk.cyan(`🔍 ${dryRunMsg}`));
+      logToFile(dryRunMsg);
     }
     
     return { success: true, backupPath };
   } catch (error) {
-    console.error(chalk.red(`❌ Deployment failed: ${error.message}`));
+    const errorMsg = `Deployment failed: ${error.message}`;
+    console.error(chalk.red(`❌ ${errorMsg}`));
+    logToFile(errorMsg, 'error');
+    
+    // Log stack trace for debugging
+    logToFile(`Stack trace: ${error.stack}`, 'error');
+    
     return { success: false, error: error.message };
   }
 }
@@ -80,7 +123,8 @@ async function deployWithRsync(config, dryRun = false) {
     .join(' ');
   
   // Build rsync command
-  const localPath = path.join(config.localPath, '/'); // Ensure trailing slash
+  // Use path.posix.join for Unix-style paths with forward slashes (rsync requirement)
+  const localPath = path.posix.join(config.localPath.replace(/\\/g, '/'), '/');
   const keyArg = config.privateKeyPath ? `-e "ssh -i ${config.privateKeyPath}"` : '';
   const dryRunArg = dryRun ? '--dry-run' : '';
   
@@ -201,19 +245,41 @@ async function deployWithScp(config, dryRun = false) {
     
     // Transfer each file
     let transferred = 0;
+    let failedTransfers = [];
+    
     for (const localFilePath of filesToTransfer) {
       const relativePath = path.relative(config.localPath, localFilePath);
       const remoteFilePath = path.posix.join(config.remotePath, relativePath);
       
-      // Create remote directory if needed
-      const remoteDir = path.posix.dirname(remoteFilePath);
-      await executeCommand(ssh, `mkdir -p ${remoteDir}`);
-      
-      // Upload the file
-      await uploadFile(ssh, localFilePath, remoteFilePath);
-      
-      transferred++;
-      progressBar.update(transferred);
+      try {
+        // Create remote directory if needed
+        const remoteDir = path.posix.dirname(remoteFilePath);
+        await executeCommand(ssh, `mkdir -p ${remoteDir}`);
+        
+        // Upload the file
+        await uploadFile(ssh, localFilePath, remoteFilePath);
+        
+        transferred++;
+        progressBar.update(transferred);
+      } catch (error) {
+        // Log error but continue with other files
+        console.error(chalk.red(`❌ Failed to transfer file ${localFilePath}: ${error.message}`));
+        failedTransfers.push({ path: localFilePath, error: error.message });
+        // Still update progress
+        transferred++;
+        progressBar.update(transferred);
+      }
+    }
+    
+    // Report any failed transfers at the end
+    if (failedTransfers.length > 0) {
+      console.log(chalk.yellow(`\n⚠️ ${failedTransfers.length} files failed to transfer:`));
+      failedTransfers.slice(0, 5).forEach(failure => {
+        console.log(chalk.red(`  - ${failure.path}: ${failure.error}`));
+      });
+      if (failedTransfers.length > 5) {
+        console.log(chalk.red(`  ...and ${failedTransfers.length - 5} more`));
+      }
     }
     
     progressBar.stop();
@@ -251,14 +317,36 @@ function executeCommand(ssh, command) {
 // Helper function to upload a file via SCP
 function uploadFile(ssh, localPath, remotePath) {
   return new Promise((resolve, reject) => {
+    // Create a timeout to prevent hanging transfers
+    const timeout = setTimeout(() => {
+      reject(new Error(`File transfer timeout: ${localPath} → ${remotePath}`));
+    }, 300000); // 5 minute timeout for large files
+    
     ssh.sftp((err, sftp) => {
-      if (err) return reject(err);
+      if (err) {
+        clearTimeout(timeout);
+        return reject(err);
+      }
       
       const readStream = fs.createReadStream(localPath);
       const writeStream = sftp.createWriteStream(remotePath);
       
-      writeStream.on('close', resolve);
-      writeStream.on('error', reject);
+      writeStream.on('close', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      
+      writeStream.on('error', (err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+      
+      // Handle read stream errors
+      readStream.on('error', (err) => {
+        clearTimeout(timeout);
+        writeStream.end();
+        reject(err);
+      });
       
       readStream.pipe(writeStream);
     });
@@ -273,17 +361,19 @@ function getFilesRecursively(dir, excludePatterns = []) {
     const files = fs.readdirSync(currentDir);
     
     for (const file of files) {
+      // Use path.join for local filesystem operations
       const currentPath = path.join(currentDir, file);
-      const currentRelativePath = path.join(relativePath, file);
+      // But normalize to posix-style paths for pattern matching consistency across platforms
+      const normalizedRelativePath = path.join(relativePath, file).replace(/\\/g, '/');
       
       // Check if the file/directory matches any exclude pattern
       const shouldExclude = excludePatterns.some(pattern => 
-        minimatch(currentRelativePath, pattern));
+        minimatch(normalizedRelativePath, pattern));
       
       if (shouldExclude) continue;
       
       if (fs.statSync(currentPath).isDirectory()) {
-        traverseDir(currentPath, currentRelativePath);
+        traverseDir(currentPath, normalizedRelativePath);
       } else {
         result.push(currentPath);
       }
@@ -300,23 +390,25 @@ function listFilesRecursively(dir, excludePatterns = []) {
     const files = fs.readdirSync(currentDir);
     
     for (const file of files) {
+      // Use path.join for local filesystem operations
       const currentPath = path.join(currentDir, file);
-      const currentRelativePath = path.join(relativePath, file);
+      // But normalize to posix-style paths for pattern matching consistency across platforms
+      const normalizedRelativePath = path.join(relativePath, file).replace(/\\/g, '/');
       
       // Check if the file/directory matches any exclude pattern
       const shouldExclude = excludePatterns.some(pattern => 
-        minimatch(currentRelativePath, pattern));
+        minimatch(normalizedRelativePath, pattern));
       
       if (shouldExclude) {
-        console.log(chalk.gray(`  [EXCLUDED] ${currentRelativePath}`));
+        console.log(chalk.gray(`  [EXCLUDED] ${normalizedRelativePath}`));
         continue;
       }
       
       if (fs.statSync(currentPath).isDirectory()) {
-        console.log(chalk.blue(`  [DIR] ${currentRelativePath}/`));
-        traverseDir(currentPath, currentRelativePath);
+        console.log(chalk.blue(`  [DIR] ${normalizedRelativePath}/`));
+        traverseDir(currentPath, normalizedRelativePath);
       } else {
-        console.log(chalk.green(`  [FILE] ${currentRelativePath}`));
+        console.log(chalk.green(`  [FILE] ${normalizedRelativePath}`));
       }
     }
   }
@@ -332,18 +424,29 @@ async function createBackup(config) {
     // Connect to SSH
     const ssh = new Client();
     
+    // Resolve private key path if it uses tilde
+    let privateKeyPath = config.privateKeyPath;
+    if (privateKeyPath) {
+      privateKeyPath = privateKeyPath.replace(/^~/, os.homedir());
+    }
+    
     await new Promise((resolve, reject) => {
       const connectionConfig = {
         host: config.host,
         username: config.username,
-        port: 22
+        port: 22,
+        readyTimeout: 30000 // Add timeout to prevent hanging
       };
       
       // Use either password or private key
       if (config.password) {
         connectionConfig.password = config.password;
-      } else if (config.privateKeyPath) {
-        connectionConfig.privateKey = fs.readFileSync(config.privateKeyPath);
+      } else if (privateKeyPath && fs.existsSync(privateKeyPath)) {
+        try {
+          connectionConfig.privateKey = fs.readFileSync(privateKeyPath);
+        } catch (err) {
+          return reject(new Error(`Could not read private key: ${err.message}`));
+        }
       }
       
       ssh.on('ready', resolve);
@@ -360,10 +463,38 @@ async function createBackup(config) {
       return null;
     }
     
+    // Check available disk space
+    console.log(chalk.cyan('Checking available disk space...'));
+    try {
+      // Get directory size
+      const dirSizeOutput = await executeCommand(ssh, `du -sh ${config.remotePath}`);
+      console.log(chalk.cyan(`Current directory size: ${dirSizeOutput.split(/\s+/)[0]}`));
+      
+      // Check available space
+      const diskSpaceOutput = await executeCommand(ssh, `df -h ${config.remotePath}`);
+      console.log(chalk.cyan('Available disk space:'));
+      console.log(chalk.gray(diskSpaceOutput));
+      
+      // Parse available space - typical output format: "Filesystem Size Used Avail Use% Mounted on"
+      const availableMatch = diskSpaceOutput.match(/\S+\s+\S+\s+\S+\s+(\S+)\s+\S+\s+\S+/);
+      if (availableMatch && availableMatch[1]) {
+        const available = availableMatch[1];
+        console.log(chalk.cyan(`Available space: ${available}`));
+        
+        // If available space is less than 500M (approximate match), warn user
+        if (available.endsWith('K') || (available.endsWith('M') && parseInt(available, 10) < 500)) {
+          console.log(chalk.yellow('⚠️ Low disk space available for backup. Proceeding with caution.'));
+        }
+      }
+    } catch (error) {
+      console.log(chalk.yellow(`⚠️ Could not check disk space: ${error.message}`));
+    }
+    
     // Create backup directory
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = `${config.remotePath}_backup_${timestamp}`;
     
+    console.log(chalk.cyan(`Creating backup at: ${backupPath}`));
     await executeCommand(ssh, `cp -r ${config.remotePath} ${backupPath}`);
     
     ssh.end();
@@ -421,5 +552,6 @@ async function rollback(config, backupPath) {
 module.exports = {
   deploy,
   rollback,
-  hasRsync
+  hasRsync,
+  logToFile
 }; 

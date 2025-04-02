@@ -40,7 +40,14 @@ async function runBuild(config) {
     // Verify that build output directory exists
     const buildOutputPath = path.resolve(process.cwd(), config.buildOutputDir);
     if (!fs.existsSync(buildOutputPath)) {
-      throw new Error(`Build output directory not found: ${buildOutputPath}`);
+      // Create the directory instead of throwing an error
+      console.log(chalk.yellow(`⚠️ Build output directory not found: ${buildOutputPath}, creating it...`));
+      try {
+        fs.mkdirSync(buildOutputPath, { recursive: true });
+        console.log(chalk.green(`✅ Created build output directory: ${buildOutputPath}`));
+      } catch (err) {
+        throw new Error(`Failed to create build output directory: ${err.message}`);
+      }
     }
     
     return {
