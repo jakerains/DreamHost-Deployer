@@ -132,7 +132,7 @@ async function createConfig(configPath, isVite = false, projectInfo = null) {
   config.username = await prompt('SSH username:');
   
   // Detect whether to use password or key authentication
-  const authType = await prompt('Authentication type (password/key) [key]:') || 'key';
+  const authType = await prompt('Authentication type (password/key) [password]:') || 'password';
   
   if (authType.toLowerCase() === 'password') {
     config.password = await prompt('SSH password:');

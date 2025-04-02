@@ -251,14 +251,22 @@ async function deployWithScp(config, dryRun = false) {
       const connectionConfig = {
         host: config.host,
         username: config.username,
-        port: 22
+        port: 22,
+        readyTimeout: 30000 // Add timeout to prevent hanging
       };
       
-      // Use either password or private key
+      // Use either password or private key - prioritize password if available
       if (config.password) {
         connectionConfig.password = config.password;
       } else if (config.privateKeyPath) {
-        connectionConfig.privateKey = fs.readFileSync(config.privateKeyPath);
+        try {
+          // Resolve tilde in path if present
+          const resolvedKeyPath = config.privateKeyPath.replace(/^~/, os.homedir());
+          connectionConfig.privateKey = fs.readFileSync(resolvedKeyPath);
+        } catch (err) {
+          console.error(chalk.red(`❌ Failed to read SSH key: ${err.message}`));
+          return reject(new Error(`Could not read SSH key: ${err.message}`));
+        }
       }
       
       ssh.on('ready', resolve);
@@ -469,7 +477,7 @@ async function createBackup(config) {
         readyTimeout: 30000 // Add timeout to prevent hanging
       };
       
-      // Use either password or private key
+      // Use either password or private key - prioritize password if available
       if (config.password) {
         connectionConfig.password = config.password;
       } else if (privateKeyPath && fs.existsSync(privateKeyPath)) {
@@ -552,14 +560,22 @@ async function rollback(config, backupPath) {
       const connectionConfig = {
         host: config.host,
         username: config.username,
-        port: 22
+        port: 22,
+        readyTimeout: 30000 // Add timeout to prevent hanging
       };
       
-      // Use either password or private key
+      // Use either password or private key - prioritize password if available
       if (config.password) {
         connectionConfig.password = config.password;
       } else if (config.privateKeyPath) {
-        connectionConfig.privateKey = fs.readFileSync(config.privateKeyPath);
+        try {
+          // Resolve tilde in path if present
+          const resolvedKeyPath = config.privateKeyPath.replace(/^~/, os.homedir());
+          connectionConfig.privateKey = fs.readFileSync(resolvedKeyPath);
+        } catch (err) {
+          console.error(chalk.red(`❌ Failed to read SSH key: ${err.message}`));
+          return reject(new Error(`Could not read SSH key: ${err.message}`));
+        }
       }
       
       ssh.on('ready', resolve);

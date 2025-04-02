@@ -196,7 +196,43 @@ async function verifySSHConnectionInternal(config) {
     // Check if we have a password or need to ask for one
     let password = config.password;
     
-    // Try SSH key authentication first using ssh2 library instead of command line
+    // Try password authentication first if available, otherwise try SSH key
+    if (config.password) {
+        try {
+            console.log(chalk.cyan('Attempting password authentication...'));
+            
+            await new Promise((resolve, reject) => {
+                const conn = new Client();
+                
+                let passwordTimeout = setTimeout(() => {
+                    conn.end();
+                    reject(new Error('Password authentication timeout after 15 seconds'));
+                }, 15000);
+
+                conn.on('ready', () => {
+                    clearTimeout(passwordTimeout);
+                    console.log(chalk.green('✅ Password authentication successful'));
+                    conn.end();
+                    resolve(true);
+                }).on('error', (err) => {
+                    clearTimeout(passwordTimeout);
+                    reject(err);
+                }).connect({
+                    host: config.host,
+                    username: config.username,
+                    password: config.password,
+                    readyTimeout: 30000
+                });
+            });
+            
+            return true;
+        } catch (error) {
+            console.log(chalk.yellow(`⚠️ Password authentication failed: ${error.message}`));
+            console.log(chalk.cyan('Falling back to SSH key authentication...'));
+        }
+    }
+    
+    // Try SSH key authentication using ssh2 library instead of command line
     try {
         console.log(chalk.cyan('Attempting SSH key authentication...'));
         
@@ -303,6 +339,12 @@ async function verifySSHConnectionInternal(config) {
                     readyTimeout: 30000
                 });
             });
+            
+            // Save password to config if successful
+            if (!config.password && password) {
+                config.password = password;
+                console.log(chalk.green('✅ Password saved for future connections'));
+            }
             
             return true;
         } catch (error) {
