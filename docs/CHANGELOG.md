@@ -2,6 +2,24 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.6.6] - 2025-04-02
+
+### Fixed
+- Fixed init command hanging issues
+  - Added explicit timeouts for SSH connection verification (15s for individual attempts, 30s overall)
+  - Added 45-second timeout for server environment checks
+  - Implemented proper error handling for connection timeouts
+  - Added clearer error messages when connections time out
+  - Ensured proper resource cleanup when timeouts occur
+  - Improved the initialization process to continue even if SSH checks fail
+  
+### Improved
+- Enhanced init command to clearly differentiate it from the main menu
+  - Added detailed welcome message explaining what the init command does
+  - Improved documentation to clarify init command's purpose
+  - Updated CLI help text to better describe the initialization process
+  - Enhanced project initialization workflow for a smoother setup experience
+
 ## [0.6.4] - 2025-04-01
 
 ### Improved

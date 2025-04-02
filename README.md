@@ -56,9 +56,12 @@ dreamhost-deployer deploy
    # Install the package
    npm install -g dreamhost-deployer
    
-   # Run the interactive setup
+   # Run the initialization command to set up your project
+   dreamhost-deployer init
+   
+   # Or use the interactive menu
    dreamhost-deployer
-   # Select "Create new configuration" from the menu
+   # Select "Initialize project" from the menu
    ```
 
 2. **SSH Key Setup**
@@ -123,6 +126,7 @@ The screenshots below are mockups representing the actual terminal interface you
 | Command | Description |
 |---------|-------------|
 | `dreamhost-deployer` | Launch interactive menu |
+| `dreamhost-deployer init` | Set up project for DreamHost deployment (config, SSH, server) |
 | `dreamhost-deployer deploy` | Deploy website to DreamHost |
 | `dreamhost-deployer deploy --dry-run` | Preview deployment without making changes |
 | `dreamhost-deployer build` | Run build process without deploying |

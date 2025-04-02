@@ -57,9 +57,16 @@ async function checkServerEnvironment(config) {
         // Connect to the server
         try {
             await new Promise((resolve, reject) => {
+                let connTimeout = setTimeout(() => {
+                    conn.end();
+                    reject(new Error('SSH connection timeout after 15 seconds'));
+                }, 15000);
+                
                 conn.on('ready', () => {
+                    clearTimeout(connTimeout);
                     resolve();
                 }).on('error', (err) => {
+                    clearTimeout(connTimeout);
                     reject(err);
                 }).connect(authConfig);
             });
@@ -168,6 +175,24 @@ async function checkServerEnvironment(config) {
 async function verifySSHConnection(config) {
     console.log(chalk.cyan('Verifying SSH connection...'));
     
+    // Add timeout for the entire verification process
+    const connectionPromise = verifySSHConnectionInternal(config);
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('SSH verification timed out after 30 seconds')), 30000)
+    );
+    
+    try {
+        return await Promise.race([connectionPromise, timeoutPromise]);
+    } catch (error) {
+        console.error(chalk.red(`❌ SSH verification failed: ${error.message}`));
+        return false;
+    }
+}
+
+/**
+ * Internal function for SSH connection verification with proper error handling
+ */
+async function verifySSHConnectionInternal(config) {
     // Check if we have a password or need to ask for one
     let password = config.password;
     
@@ -201,11 +226,18 @@ async function verifySSHConnection(config) {
                 }
             }
             
+            let connectionTimeout = setTimeout(() => {
+                conn.end();
+                reject(new Error('SSH connection timeout after 15 seconds'));
+            }, 15000);
+            
             conn.on('ready', () => {
+                clearTimeout(connectionTimeout);
                 console.log(chalk.green('✅ SSH key authentication successful'));
                 conn.end();
                 resolve(true);
             }).on('error', (err) => {
+                clearTimeout(connectionTimeout);
                 reject(err);
             }).connect(authConfig);
         });
@@ -251,11 +283,18 @@ async function verifySSHConnection(config) {
             await new Promise((resolve, reject) => {
                 const conn = new Client();
                 
+                let passwordTimeout = setTimeout(() => {
+                    conn.end();
+                    reject(new Error('Password authentication timeout after 15 seconds'));
+                }, 15000);
+
                 conn.on('ready', () => {
+                    clearTimeout(passwordTimeout);
                     console.log(chalk.green('✅ Password authentication successful'));
                     conn.end();
                     resolve(true);
                 }).on('error', (err) => {
+                    clearTimeout(passwordTimeout);
                     reject(err);
                 }).connect({
                     host: config.host,

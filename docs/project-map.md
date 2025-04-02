@@ -43,6 +43,12 @@ DreamHost Deployer follows a modular architecture with clear separation of conce
 - Provides an interactive menu for easy access to features
 - Delegates to appropriate command modules
 
+```
+dreamhost-deployer        # Main CLI entry point with interactive menu
+dreamhost-deployer init   # Setup new project (config, SSH, server environment)
+dreamhost-deployer deploy # Deploy website
+```
+
 ### 2. Command Layer (`src/commands/`)
 
 - Implements specific commands (deploy, setup-node, etc.)

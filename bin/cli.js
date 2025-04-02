@@ -83,7 +83,7 @@ program
 // Initialize command - sets up project for deployment
 program
   .command('init')
-  .description('Initialize project for DreamHost deployment')
+  .description('Set up project for DreamHost deployment (SSH, config, server environment)')
   .action(() => {
     const initCommand = require('../src/commands/init-command');
     initCommand.run();
@@ -124,7 +124,7 @@ program
       {
         name: '🚀 Initialize project',
         value: 'init',
-        description: 'Set up a new project for DreamHost deployment'
+        description: 'Set up config, SSH, and server for DreamHost deployment'
       },
       {
         name: '📋 Project-specific settings',
