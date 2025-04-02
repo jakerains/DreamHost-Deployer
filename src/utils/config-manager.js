@@ -120,8 +120,14 @@ async function createConfig(configPath, isVite = false, projectInfo = null) {
   config.host = await prompt('DreamHost hostname (e.g., example.com):');
   config.username = await prompt('SSH username:');
   
-  // Password authentication only
-  config.password = await prompt('SSH password:');
+  // Password authentication only - using a masked password input
+  const { password } = await inquirer.prompt([{
+    type: 'password',
+    name: 'password',
+    message: 'SSH password:',
+    mask: '*'
+  }]);
+  config.password = password;
   
   config.remotePath = await prompt('Remote path on DreamHost (e.g., /home/username/example.com):');
   config.localPath = await prompt(`Local path to deploy from [${process.cwd()}]:`) || process.cwd();
