@@ -2,6 +2,16 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.7.4] - 2025-04-02
+
+### Fixed
+- Added automatic host key acceptance to prevent interactive prompts during deployment
+  - Modified rsync command to use `-e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"`
+  - Added `hostVerifier: () => true` to SSH client configuration for automatic host acceptance
+  - Enhanced SSH connection parameters across all functions (deployment, backup, rollback)
+  - Configured wider algorithm support for better server compatibility
+  - Improved automated deployments by eliminating manual confirmation steps
+
 ## [0.7.3] - 2025-04-02
 
 ### Improved

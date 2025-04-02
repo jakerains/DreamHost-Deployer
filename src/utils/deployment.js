@@ -154,7 +154,10 @@ async function deployWithRsync(config, dryRun = false) {
   const keyArg = '';
   const dryRunArg = dryRun ? '--dry-run' : '';
   
-  const cmd = `rsync -avz --delete ${keyArg} ${excludeArgs} ${dryRunArg} ${localPath} ${config.username}@${config.host}:${config.remotePath}`;
+  // Add StrictHostKeyChecking=no to automatically accept host keys
+  const sshOptions = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+  
+  const cmd = `rsync -avz --delete -e "ssh ${sshOptions}" ${keyArg} ${excludeArgs} ${dryRunArg} ${localPath} ${config.username}@${config.host}:${config.remotePath}`;
   
   // Log command for debug purposes
   console.log(chalk.gray(`Command: ${cmd}`));
@@ -252,11 +255,17 @@ async function deployWithScp(config, dryRun = false) {
         host: config.host,
         username: config.username,
         port: 22,
-        readyTimeout: 30000 // Add timeout to prevent hanging
+        readyTimeout: 30000, // Add timeout to prevent hanging
+        algorithms: {
+          serverHostKey: ['ssh-ed25519', 'ecdsa-sha2-nistp256', 'rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+        }
       };
       
       // Only password authentication is supported
       connectionConfig.password = config.password;
+      
+      // Disable strict host key checking
+      connectionConfig.hostVerifier = () => true;
       
       ssh.on('ready', resolve);
       ssh.on('error', reject);
@@ -456,11 +465,17 @@ async function createBackup(config) {
         host: config.host,
         username: config.username,
         port: 22,
-        readyTimeout: 30000 // Add timeout to prevent hanging
+        readyTimeout: 30000, // Add timeout to prevent hanging
+        algorithms: {
+          serverHostKey: ['ssh-ed25519', 'ecdsa-sha2-nistp256', 'rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+        }
       };
       
       // Only password authentication is supported
       connectionConfig.password = config.password;
+      
+      // Disable strict host key checking
+      connectionConfig.hostVerifier = () => true;
       
       ssh.on('ready', resolve);
       ssh.on('error', reject);
@@ -535,11 +550,17 @@ async function rollback(config, backupPath) {
         host: config.host,
         username: config.username,
         port: 22,
-        readyTimeout: 30000 // Add timeout to prevent hanging
+        readyTimeout: 30000, // Add timeout to prevent hanging
+        algorithms: {
+          serverHostKey: ['ssh-ed25519', 'ecdsa-sha2-nistp256', 'rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa']
+        }
       };
       
       // Only password authentication is supported
       connectionConfig.password = config.password;
+      
+      // Disable strict host key checking
+      connectionConfig.hostVerifier = () => true;
       
       ssh.on('ready', resolve);
       ssh.on('error', reject);
