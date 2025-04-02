@@ -90,8 +90,8 @@ async function fixSSHKey() {
             }
             
             // Generate key
-            // Resolve tilde expansion for home directory paths
-            const resolvedPath = ed25519KeyPath.replace(/^~/, os.homedir());
+            // Resolve tilde expansion and normalize paths for cross-platform compatibility
+            const resolvedPath = path.normalize(ed25519KeyPath.replace(/^~/, os.homedir()));
             execSync(`ssh-keygen -t ed25519 -f "${resolvedPath}" -N "" -C "dreamhost-deployer"`);
             console.log(chalk.green(`✅ Ed25519 SSH key generated at ${ed25519KeyPath}`));
             

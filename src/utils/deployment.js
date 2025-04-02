@@ -15,7 +15,7 @@ const execAsync = promisify(exec);
  * Handles the actual deployment process, dry runs, and rollbacks
  */
 
-// Simple logging utility
+// Simple logging utility with cross-platform path handling
 function logToFile(message, type = 'info') {
   const logDir = path.join(process.cwd(), 'logs');
   const today = new Date().toISOString().split('T')[0];
@@ -30,7 +30,8 @@ function logToFile(message, type = 'info') {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] [${type.toUpperCase()}] ${message}\n`;
     
-    fs.appendFileSync(logFile, logEntry);
+    // Write logs with proper line endings for the current platform
+    fs.appendFileSync(logFile, logEntry, { encoding: 'utf8' });
   } catch (error) {
     console.error(chalk.red(`Failed to write to log file: ${error.message}`));
   }
@@ -41,7 +42,12 @@ async function deploy(config, options = {}) {
   const { dryRun = false, rollbackEnabled = true } = options;
   
   try {
-    logToFile(`Starting deployment to ${config.host}:${config.remotePath}`);
+    // Create logs directory if it doesn't exist (with cross-platform path handling)
+  const logDir = path.join(process.cwd(), 'logs');
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+  logToFile(`Starting deployment to ${config.host}:${config.remotePath}`);
     
     // Validate local path exists
     if (!fs.existsSync(config.localPath)) {
@@ -106,8 +112,26 @@ async function deploy(config, options = {}) {
 // Check if rsync is available
 function hasRsync() {
   try {
-    execSync('rsync --version', { stdio: 'ignore' });
-    return true;
+    // Use different commands based on platform to check for rsync
+    if (process.platform === 'win32') {
+      // On Windows, some installations might have rsync in a different location
+      try {
+        execSync('rsync --version', { stdio: 'ignore' });
+        return true;
+      } catch (e) {
+        // Try typical Git Bash or WSL location
+        try {
+          execSync('where rsync', { stdio: 'ignore' });
+          return true;
+        } catch (e2) {
+          return false;
+        }
+      }
+    } else {
+      // On macOS and Linux, just check directly
+      execSync('rsync --version', { stdio: 'ignore' });
+      return true;
+    }
   } catch (error) {
     return false;
   }
@@ -124,8 +148,10 @@ async function deployWithRsync(config, dryRun = false) {
   
   // Build rsync command
   // Use path.posix.join for Unix-style paths with forward slashes (rsync requirement)
+  // Ensure Windows paths are properly converted for rsync
   const localPath = path.posix.join(config.localPath.replace(/\\/g, '/'), '/');
-  const keyArg = config.privateKeyPath ? `-e "ssh -i ${config.privateKeyPath}"` : '';
+  // Normalize SSH key path for the current platform and ensure it uses forward slashes for SSH
+  const keyArg = config.privateKeyPath ? `-e "ssh -i ${path.normalize(config.privateKeyPath).replace(/\\/g, '/')}"` : '';
   const dryRunArg = dryRun ? '--dry-run' : '';
   
   const cmd = `rsync -avz --delete ${keyArg} ${excludeArgs} ${dryRunArg} ${localPath} ${config.username}@${config.host}:${config.remotePath}`;
@@ -364,7 +390,8 @@ function getFilesRecursively(dir, excludePatterns = []) {
       // Use path.join for local filesystem operations
       const currentPath = path.join(currentDir, file);
       // But normalize to posix-style paths for pattern matching consistency across platforms
-      const normalizedRelativePath = path.join(relativePath, file).replace(/\\/g, '/');
+      // This ensures pattern matching works the same on Windows and Unix-based systems
+      const normalizedRelativePath = path.posix.join(relativePath.replace(/\\/g, '/'), file.replace(/\\/g, '/'));
       
       // Check if the file/directory matches any exclude pattern
       const shouldExclude = excludePatterns.some(pattern => 
@@ -393,7 +420,8 @@ function listFilesRecursively(dir, excludePatterns = []) {
       // Use path.join for local filesystem operations
       const currentPath = path.join(currentDir, file);
       // But normalize to posix-style paths for pattern matching consistency across platforms
-      const normalizedRelativePath = path.join(relativePath, file).replace(/\\/g, '/');
+      // This ensures pattern matching works the same on Windows and Unix-based systems
+      const normalizedRelativePath = path.posix.join(relativePath.replace(/\\/g, '/'), file.replace(/\\/g, '/'));
       
       // Check if the file/directory matches any exclude pattern
       const shouldExclude = excludePatterns.some(pattern => 
@@ -424,10 +452,13 @@ async function createBackup(config) {
     // Connect to SSH
     const ssh = new Client();
     
-    // Resolve private key path if it uses tilde
+    // Resolve private key path with tilde expansion and normalize for cross-platform compatibility
     let privateKeyPath = config.privateKeyPath;
     if (privateKeyPath) {
+      // Replace tilde with home directory
       privateKeyPath = privateKeyPath.replace(/^~/, os.homedir());
+      // Normalize path separators for the current OS
+      privateKeyPath = path.normalize(privateKeyPath);
     }
     
     await new Promise((resolve, reject) => {

@@ -164,7 +164,9 @@ async function generateSSHKey(keyPath) {
         
         // Generate key - using Ed25519 instead of RSA for better compatibility
         console.log(chalk.blue('🔐 Generating new SSH key...'));
-        execSync(`ssh-keygen -t ed25519 -f "${keyPath}" -N "" -C "dreamhost-deployer"`);
+        // Normalize path for cross-platform compatibility
+        const normalizedKeyPath = path.normalize(keyPath);
+        execSync(`ssh-keygen -t ed25519 -f "${normalizedKeyPath}" -N "" -C "dreamhost-deployer"`);
         console.log(chalk.green(`✅ SSH key generated at ${keyPath}`));
         
         return keyPath;

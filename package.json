@@ -1,10 +1,10 @@
 {
   "name": "dreamhost-deployer",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "A stylish, interactive CLI tool for deploying websites to DreamHost shared hosting with automated build integration",
   "main": "deploy.js",
   "bin": {
-    "dreamhost-deployer": "./bin/cli.js"
+    "dreamhost-deployer": "bin/cli.js"
   },
   "scripts": {
     "test": "node test.js",
@@ -28,7 +28,7 @@
   "type": "commonjs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jakerains/dreamhost-deployer"
+    "url": "git+https://github.com/jakerains/dreamhost-deployer.git"
   },
   "dependencies": {
     "boxen": "^5.1.2",
@@ -48,6 +48,7 @@
   "engines": {
     "node": ">=14.0.0"
   },
+  "os": ["darwin", "linux", "win32"],
   "files": [
     "bin/",
     "src/",

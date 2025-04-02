@@ -2,6 +2,22 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.6.4] - 2025-04-01
+
+### Improved
+- Enhanced cross-platform compatibility for Windows, macOS, and Linux
+  - Improved path handling with proper normalization for all operating systems
+  - Better SSH key path resolution with platform-specific path separators
+  - Enhanced rsync detection on Windows systems (checks multiple installation locations)
+  - Fixed log file handling with proper encoding for cross-platform line endings
+  - Added platform-specific checks using `process.platform` for better Windows support
+- Updated package.json to explicitly declare OS compatibility
+- Enhanced deployment process for better cross-platform operation
+  - Normalized paths before SSH key operations
+  - Fixed path separators in remote path handling
+  - Improved file path matching for consistent pattern matching across platforms
+- Updated documentation to emphasize cross-platform support
+
 ## [0.5.6] - 2025-03-14
 
 ### Added

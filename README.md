@@ -615,7 +615,7 @@ These logs contain detailed information about what went wrong during deployment.
 - **Node.js**: 14.0.0 or higher
 - **SSH Access**: SSH account on your DreamHost server
 - **Rsync**: Recommended but not required (falls back to SCP)
-- **Operating Systems**: Works on macOS, Linux, and Windows
+- **Operating Systems**: Fully cross-platform, works on macOS, Linux, and Windows
 - **Disk Space**: Minimal; requires about 10MB plus dependencies
 - **Permissions**: Write access to your DreamHost web directory
 
