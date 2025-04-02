@@ -1,6 +1,6 @@
 {
   "name": "dreamhost-deployer",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "description": "A stylish, interactive CLI tool for deploying websites to DreamHost shared hosting with automated build integration",
   "main": "deploy.js",
   "bin": {
