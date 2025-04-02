@@ -2,6 +2,16 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.7.5] - 2025-04-02
+
+### Added
+- Added Python project support
+  - Automatic detection of Python projects (Django, Flask, FastAPI, etc.)
+  - Server environment checks for Python, pip, and virtualenv
+  - Framework-specific build configurations for different Python frameworks
+  - Optimization suggestions for Python-based projects
+  - Proper file exclusion patterns for Python projects (pycache, etc.)
+
 ## [0.7.4] - 2025-04-02
 
 ### Fixed

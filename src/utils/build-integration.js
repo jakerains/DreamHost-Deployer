@@ -87,12 +87,71 @@ async function runBuild(config) {
 // Detect project type for better build integration
 function detectProjectType() {
   try {
-    // Check for package.json
+    // Check for Python project markers first
+    const hasPipfile = fs.existsSync(path.join(process.cwd(), 'Pipfile'));
+    const hasRequirements = fs.existsSync(path.join(process.cwd(), 'requirements.txt'));
+    const hasSetupPy = fs.existsSync(path.join(process.cwd(), 'setup.py'));
+    const hasPyprojectToml = fs.existsSync(path.join(process.cwd(), 'pyproject.toml'));
+    const hasManagePy = fs.existsSync(path.join(process.cwd(), 'manage.py'));
+    const hasAppPy = fs.existsSync(path.join(process.cwd(), 'app.py')) || 
+                    fs.existsSync(path.join(process.cwd(), 'wsgi.py')) || 
+                    fs.existsSync(path.join(process.cwd(), 'application.py'));
+    
+    // Python project detection
+    if (hasPipfile || hasRequirements || hasSetupPy || hasPyprojectToml || hasManagePy || hasAppPy) {
+      // Determine Python project type
+      if (hasManagePy) {
+        return {
+          type: 'django',
+          details: 'Django project detected',
+          buildCommand: 'python manage.py collectstatic --noinput',
+          outputDir: 'staticfiles',
+          exclude: ['__pycache__', '*.pyc', '.env*', '.venv', 'venv', 'env', '*.sqlite3', '.pytest_cache', '.coverage', 'htmlcov']
+        };
+      } else if (hasAppPy || fs.existsSync(path.join(process.cwd(), 'wsgi.py'))) {
+        return {
+          type: 'flask',
+          details: 'Flask project detected',
+          buildCommand: '[ -d "static" ] && echo "Static files ready" || mkdir -p static',
+          outputDir: 'static',
+          exclude: ['__pycache__', '*.pyc', '.env*', '.venv', 'venv', 'env', '*.sqlite3', '.pytest_cache', '.coverage', 'htmlcov']
+        };
+      } else if (hasPyprojectToml) {
+        // Check for FastAPI
+        try {
+          const pyprojectContent = fs.readFileSync(path.join(process.cwd(), 'pyproject.toml'), 'utf8');
+          if (pyprojectContent.includes('fastapi')) {
+            return {
+              type: 'fastapi',
+              details: 'FastAPI project detected',
+              buildCommand: '[ -d "static" ] && echo "Static files ready" || mkdir -p static',
+              outputDir: 'static',
+              exclude: ['__pycache__', '*.pyc', '.env*', '.venv', 'venv', 'env', '*.sqlite3', '.pytest_cache', '.coverage', 'htmlcov']
+            };
+          }
+        } catch (err) {
+          // Continue with generic Python detection
+        }
+      }
+      
+      // Generic Python project
+      return {
+        type: 'python',
+        details: 'Python project detected',
+        buildCommand: hasRequirements ? 'pip install -r requirements.txt' : (hasPipfile ? 'pipenv install --deploy' : null),
+        outputDir: fs.existsSync(path.join(process.cwd(), 'dist')) ? 'dist' : 
+                 (fs.existsSync(path.join(process.cwd(), 'build')) ? 'build' : 
+                 (fs.existsSync(path.join(process.cwd(), 'static')) ? 'static' : '.')),
+        exclude: ['__pycache__', '*.pyc', '.env*', '.venv', 'venv', 'env', '*.sqlite3', '.pytest_cache', '.coverage', 'htmlcov']
+      };
+    }
+    
+    // Check for package.json (Node.js projects)
     const packageJsonPath = path.join(process.cwd(), 'package.json');
     if (!fs.existsSync(packageJsonPath)) {
       return {
         type: 'unknown',
-        details: 'No package.json found'
+        details: 'No package.json or Python project markers found'
       };
     }
     
@@ -188,6 +247,33 @@ function detectProjectType() {
 // Suggest framework-specific optimizations
 function suggestOptimizations(projectType) {
   const suggestions = {
+    // Python project types
+    python: [
+      '- Use a requirements.txt file to specify dependencies',
+      '- Consider using virtualenv or pipenv for dependency isolation',
+      '- Store configuration in environment variables',
+      '- Use a .env file (gitignored) for local development'
+    ],
+    django: [
+      '- Configure STATIC_ROOT and STATIC_URL in settings.py',
+      '- Set DEBUG=False in production',
+      '- Use Django\'s whitenoise for static file serving',
+      '- Configure allowed hosts in settings.py'
+    ],
+    flask: [
+      '- Use Flask\'s static folder for static assets',
+      '- Configure app.config from environment variables',
+      '- Use Gunicorn or uWSGI for production serving',
+      '- Set up proper error handling routes'
+    ],
+    fastapi: [
+      '- Organize static files in the /static directory',
+      '- Use environment variables for configuration',
+      '- Configure CORS settings for API access',
+      '- Add proper error handling middleware'
+    ],
+    
+    // JavaScript framework types
     vite: [
       '- Use import.meta.env for environment variables',
       '- Enable build optimizations in vite.config.js',

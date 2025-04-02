@@ -14,6 +14,7 @@ const { Client } = require('ssh2'); // Add ssh2 client for cross-platform compat
 // Recommended versions
 const RECOMMENDED_NVM_VERSION = '0.40.1';
 const RECOMMENDED_NODE_VERSION = '22.14.0';
+const RECOMMENDED_PYTHON_VERSION = '3.9.0'; // Minimum recommended Python version
 
 /**
  * Check if NVM and Node.js are installed on the server
@@ -82,73 +83,163 @@ async function checkServerEnvironment(config) {
             });
         };
         
-        // Check if NVM is installed
-        console.log(chalk.cyan('Checking for NVM installation...'));
-        let nvmInstalled = false;
-        let nvmVersion = '';
+        // Get the project type to determine what environment checks to run
+        const buildIntegration = require('./build-integration');
+        const projectInfo = buildIntegration.detectProjectType();
+        const projectType = projectInfo.type || 'unknown';
         
-        try {
-            const nvmOutput = await executeCommand('source ~/.nvm/nvm.sh 2>/dev/null && nvm --version');
-            nvmVersion = nvmOutput.trim();
-            if (nvmVersion) {
-                nvmInstalled = true;
-                console.log(chalk.green(`✅ NVM is installed (version ${nvmVersion})`));
-            } else {
-                console.log(chalk.yellow('⚠️ NVM is not installed or not properly configured'));
-                conn.end(); // Close the connection
-                return true; // Setup needed
+        // Check if it's a Python project
+        const isPythonProject = ['python', 'django', 'flask', 'fastapi'].includes(projectType);
+        const isNodeProject = ['vite', 'cra', 'nextjs', 'gatsby', 'nuxt', 'vue-cli', 'svelte', 'angular', 'generic'].includes(projectType);
+        
+        console.log(chalk.blue(`Detected project type: ${projectType}`));
+        
+        // Check for Python if it's a Python project
+        let pythonInstalled = false;
+        let pythonVersion = '';
+        let pythonNeedsUpdate = false;
+        let pipInstalled = false;
+        let venvInstalled = false;
+        
+        if (isPythonProject) {
+            console.log(chalk.cyan('Checking for Python installation...'));
+            try {
+                // Check for Python 3
+                const pythonOutput = await executeCommand('python3 --version || python --version');
+                const trimmedOutput = pythonOutput.trim();
+                if (trimmedOutput && trimmedOutput.includes('Python')) {
+                    pythonInstalled = true;
+                    pythonVersion = trimmedOutput.replace('Python ', '');
+                    console.log(chalk.green(`✅ Python is installed (version ${pythonVersion})`));
+                    
+                    // Check if Python version meets recommendations
+                    pythonNeedsUpdate = compareVersions(pythonVersion, RECOMMENDED_PYTHON_VERSION) < 0;
+                    if (pythonNeedsUpdate) {
+                        console.log(chalk.yellow(`⚠️ Python version ${pythonVersion} is older than recommended version ${RECOMMENDED_PYTHON_VERSION}`));
+                    }
+                    
+                    // Check for pip
+                    try {
+                        const pipOutput = await executeCommand('pip3 --version || pip --version');
+                        if (pipOutput && pipOutput.includes('pip')) {
+                            pipInstalled = true;
+                            console.log(chalk.green('✅ pip is installed'));
+                        } else {
+                            console.log(chalk.yellow('⚠️ pip is not installed'));
+                        }
+                    } catch (error) {
+                        console.log(chalk.yellow('⚠️ pip is not installed or not in PATH'));
+                    }
+                    
+                    // Check for virtualenv/venv
+                    try {
+                        const venvOutput = await executeCommand('python3 -m venv --help || python -m venv --help || virtualenv --version');
+                        if (venvOutput) {
+                            venvInstalled = true;
+                            console.log(chalk.green('✅ virtualenv/venv is installed'));
+                        } else {
+                            console.log(chalk.yellow('⚠️ virtualenv/venv is not installed'));
+                        }
+                    } catch (error) {
+                        console.log(chalk.yellow('⚠️ virtualenv/venv is not installed'));
+                    }
+                } else {
+                    console.log(chalk.yellow('⚠️ Python is not installed or not properly configured'));
+                }
+            } catch (error) {
+                console.log(chalk.yellow(`⚠️ Python is not installed or not properly configured: ${error.message}`));
             }
-        } catch (error) {
-            console.log(chalk.yellow('⚠️ NVM is not installed or not properly configured'));
-            conn.end(); // Close the connection
-            return true; // Setup needed
         }
         
-        // Check if Node.js is installed
-        console.log(chalk.cyan('Checking for Node.js installation...'));
+        // Check for Node.js environment if needed
+        let nvmInstalled = false;
+        let nvmVersion = '';
         let nodeInstalled = false;
         let nodeVersion = '';
+        let nvmNeedsUpdate = false;
+        let nodeNeedsUpdate = false;
         
-        try {
-            const nodeOutput = await executeCommand('source ~/.nvm/nvm.sh 2>/dev/null && node --version');
-            const trimmedOutput = nodeOutput.trim();
-            if (trimmedOutput) {
-                nodeInstalled = true;
-                nodeVersion = trimmedOutput.replace('v', '');
-                console.log(chalk.green(`✅ Node.js is installed (version ${trimmedOutput})`));
-            } else {
-                console.log(chalk.yellow('⚠️ Node.js is not installed or not properly configured'));
-                conn.end(); // Close the connection
-                return true; // Setup needed
+        if (isNodeProject || !isPythonProject) {
+            // Check if NVM is installed
+            console.log(chalk.cyan('Checking for NVM installation...'));
+            
+            try {
+                const nvmOutput = await executeCommand('source ~/.nvm/nvm.sh 2>/dev/null && nvm --version');
+                nvmVersion = nvmOutput.trim();
+                if (nvmVersion) {
+                    nvmInstalled = true;
+                    console.log(chalk.green(`✅ NVM is installed (version ${nvmVersion})`));
+                    
+                    // Check if NVM version meets recommendations
+                    nvmNeedsUpdate = compareVersions(nvmVersion, RECOMMENDED_NVM_VERSION) < 0;
+                    if (nvmNeedsUpdate) {
+                        console.log(chalk.yellow(`⚠️ NVM version ${nvmVersion} is older than recommended version ${RECOMMENDED_NVM_VERSION}`));
+                    }
+                } else {
+                    console.log(chalk.yellow('⚠️ NVM is not installed or not properly configured'));
+                }
+            } catch (error) {
+                console.log(chalk.yellow('⚠️ NVM is not installed or not properly configured'));
             }
-        } catch (error) {
-            console.log(chalk.yellow('⚠️ Node.js is not installed or not properly configured'));
-            conn.end(); // Close the connection
-            return true; // Setup needed
+            
+            // Check if Node.js is installed
+            console.log(chalk.cyan('Checking for Node.js installation...'));
+            
+            try {
+                const nodeOutput = await executeCommand('source ~/.nvm/nvm.sh 2>/dev/null && node --version');
+                const trimmedOutput = nodeOutput.trim();
+                if (trimmedOutput) {
+                    nodeInstalled = true;
+                    nodeVersion = trimmedOutput.replace('v', '');
+                    console.log(chalk.green(`✅ Node.js is installed (version ${trimmedOutput})`));
+                    
+                    // Check if Node.js version meets recommendations
+                    nodeNeedsUpdate = compareVersions(nodeVersion, RECOMMENDED_NODE_VERSION) < 0;
+                    if (nodeNeedsUpdate) {
+                        console.log(chalk.yellow(`⚠️ Node.js version ${nodeVersion} is older than recommended version ${RECOMMENDED_NODE_VERSION}`));
+                    }
+                } else {
+                    console.log(chalk.yellow('⚠️ Node.js is not installed or not properly configured'));
+                }
+            } catch (error) {
+                console.log(chalk.yellow('⚠️ Node.js is not installed or not properly configured'));
+            }
         }
         
         // Close the SSH connection
         conn.end();
         
-        // Check if versions meet recommendations
-        const nvmNeedsUpdate = compareVersions(nvmVersion, RECOMMENDED_NVM_VERSION) < 0;
-        const nodeNeedsUpdate = compareVersions(nodeVersion, RECOMMENDED_NODE_VERSION) < 0;
+        // Determine if setup is needed based on project type
+        let setupNeeded = false;
         
-        if (nvmNeedsUpdate) {
-            console.log(chalk.yellow(`⚠️ NVM version ${nvmVersion} is older than recommended version ${RECOMMENDED_NVM_VERSION}`));
+        if (isPythonProject) {
+            setupNeeded = !pythonInstalled || pythonNeedsUpdate || !pipInstalled;
+            
+            if (setupNeeded) {
+                console.log(chalk.yellow('⚠️ Python environment needs setup or updates'));
+            } else {
+                console.log(chalk.green('✅ Python environment is properly configured'));
+            }
+        } else if (isNodeProject) {
+            setupNeeded = !nvmInstalled || !nodeInstalled || nvmNeedsUpdate || nodeNeedsUpdate;
+            
+            if (setupNeeded) {
+                console.log(chalk.yellow('⚠️ Node.js environment needs setup or updates'));
+            } else {
+                console.log(chalk.green('✅ Node.js environment is properly configured'));
+            }
+        } else {
+            // For unknown project types, check both environments
+            setupNeeded = (!pythonInstalled && !nodeInstalled);
+            
+            if (setupNeeded) {
+                console.log(chalk.yellow('⚠️ Neither Python nor Node.js environments are properly configured'));
+            } else {
+                console.log(chalk.green('✅ Server environment is properly configured'));
+            }
         }
         
-        if (nodeNeedsUpdate) {
-            console.log(chalk.yellow(`⚠️ Node.js version ${nodeVersion} is older than recommended version ${RECOMMENDED_NODE_VERSION}`));
-        }
-        
-        // If either needs update, suggest setup
-        if (nvmNeedsUpdate || nodeNeedsUpdate) {
-            return true; // Setup needed
-        }
-        
-        console.log(chalk.green('✅ Server environment is properly configured'));
-        return false; // No setup needed
+        return setupNeeded;
         
     } catch (error) {
         console.error(chalk.red(`❌ Error checking server environment: ${error.message}`));
@@ -363,5 +454,6 @@ module.exports = {
     checkAndSetupServerIfNeeded,
     verifySSHConnection,
     RECOMMENDED_NVM_VERSION,
-    RECOMMENDED_NODE_VERSION
+    RECOMMENDED_NODE_VERSION,
+    RECOMMENDED_PYTHON_VERSION
 }; 

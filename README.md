@@ -4,7 +4,7 @@
   
   <h1>🏠 🔄 💻</h1>
   
-  ![Version](https://img.shields.io/badge/version-0.7.4-blue.svg?style=flat-square)
+  ![Version](https://img.shields.io/badge/version-0.7.5-blue.svg?style=flat-square)
   ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
   ![Node](https://img.shields.io/badge/node-%3E=14.0.0-brightgreen.svg?style=flat-square)
   
