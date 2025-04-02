@@ -150,8 +150,8 @@ async function deployWithRsync(config, dryRun = false) {
   // Use path.posix.join for Unix-style paths with forward slashes (rsync requirement)
   // Ensure Windows paths are properly converted for rsync
   const localPath = path.posix.join(config.localPath.replace(/\\/g, '/'), '/');
-  // Normalize SSH key path for the current platform and ensure it uses forward slashes for SSH
-  const keyArg = config.privateKeyPath ? `-e "ssh -i ${path.normalize(config.privateKeyPath).replace(/\\/g, '/')}"` : '';
+  // SSH key authentication removed - only using password auth
+  const keyArg = '';
   const dryRunArg = dryRun ? '--dry-run' : '';
   
   const cmd = `rsync -avz --delete ${keyArg} ${excludeArgs} ${dryRunArg} ${localPath} ${config.username}@${config.host}:${config.remotePath}`;
@@ -255,19 +255,8 @@ async function deployWithScp(config, dryRun = false) {
         readyTimeout: 30000 // Add timeout to prevent hanging
       };
       
-      // Use either password or private key - prioritize password if available
-      if (config.password) {
-        connectionConfig.password = config.password;
-      } else if (config.privateKeyPath) {
-        try {
-          // Resolve tilde in path if present
-          const resolvedKeyPath = config.privateKeyPath.replace(/^~/, os.homedir());
-          connectionConfig.privateKey = fs.readFileSync(resolvedKeyPath);
-        } catch (err) {
-          console.error(chalk.red(`❌ Failed to read SSH key: ${err.message}`));
-          return reject(new Error(`Could not read SSH key: ${err.message}`));
-        }
-      }
+      // Only password authentication is supported
+      connectionConfig.password = config.password;
       
       ssh.on('ready', resolve);
       ssh.on('error', reject);
@@ -460,14 +449,7 @@ async function createBackup(config) {
     // Connect to SSH
     const ssh = new Client();
     
-    // Resolve private key path with tilde expansion and normalize for cross-platform compatibility
-    let privateKeyPath = config.privateKeyPath;
-    if (privateKeyPath) {
-      // Replace tilde with home directory
-      privateKeyPath = privateKeyPath.replace(/^~/, os.homedir());
-      // Normalize path separators for the current OS
-      privateKeyPath = path.normalize(privateKeyPath);
-    }
+    // Private key authentication removed
     
     await new Promise((resolve, reject) => {
       const connectionConfig = {
@@ -477,16 +459,8 @@ async function createBackup(config) {
         readyTimeout: 30000 // Add timeout to prevent hanging
       };
       
-      // Use either password or private key - prioritize password if available
-      if (config.password) {
-        connectionConfig.password = config.password;
-      } else if (privateKeyPath && fs.existsSync(privateKeyPath)) {
-        try {
-          connectionConfig.privateKey = fs.readFileSync(privateKeyPath);
-        } catch (err) {
-          return reject(new Error(`Could not read private key: ${err.message}`));
-        }
-      }
+      // Only password authentication is supported
+      connectionConfig.password = config.password;
       
       ssh.on('ready', resolve);
       ssh.on('error', reject);
@@ -564,19 +538,8 @@ async function rollback(config, backupPath) {
         readyTimeout: 30000 // Add timeout to prevent hanging
       };
       
-      // Use either password or private key - prioritize password if available
-      if (config.password) {
-        connectionConfig.password = config.password;
-      } else if (config.privateKeyPath) {
-        try {
-          // Resolve tilde in path if present
-          const resolvedKeyPath = config.privateKeyPath.replace(/^~/, os.homedir());
-          connectionConfig.privateKey = fs.readFileSync(resolvedKeyPath);
-        } catch (err) {
-          console.error(chalk.red(`❌ Failed to read SSH key: ${err.message}`));
-          return reject(new Error(`Could not read SSH key: ${err.message}`));
-        }
-      }
+      // Only password authentication is supported
+      connectionConfig.password = config.password;
       
       ssh.on('ready', resolve);
       ssh.on('error', reject);

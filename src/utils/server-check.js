@@ -40,19 +40,8 @@ async function checkServerEnvironment(config) {
             readyTimeout: 30000
         };
         
-        // Add password if available
-        if (config.password) {
-            authConfig.password = config.password;
-        }
-        // Add private key if available
-        else if (config.privateKeyPath && fs.existsSync(config.privateKeyPath)) {
-            try {
-                authConfig.privateKey = fs.readFileSync(config.privateKeyPath);
-            } catch (err) {
-                console.log(chalk.yellow(`⚠️ Could not read private key: ${err.message}`));
-                return true; // Setup needed due to authentication issues
-            }
-        }
+        // Only password authentication is supported
+        authConfig.password = config.password;
         
         // Connect to the server
         try {
@@ -196,91 +185,37 @@ async function verifySSHConnectionInternal(config) {
     // Check if we have a password or need to ask for one
     let password = config.password;
     
-    // Try password authentication first if available, otherwise try SSH key
-    if (config.password) {
-        try {
-            console.log(chalk.cyan('Attempting password authentication...'));
-            
-            await new Promise((resolve, reject) => {
-                const conn = new Client();
-                
-                let passwordTimeout = setTimeout(() => {
-                    conn.end();
-                    reject(new Error('Password authentication timeout after 15 seconds'));
-                }, 15000);
-
-                conn.on('ready', () => {
-                    clearTimeout(passwordTimeout);
-                    console.log(chalk.green('✅ Password authentication successful'));
-                    conn.end();
-                    resolve(true);
-                }).on('error', (err) => {
-                    clearTimeout(passwordTimeout);
-                    reject(err);
-                }).connect({
-                    host: config.host,
-                    username: config.username,
-                    password: config.password,
-                    readyTimeout: 30000
-                });
-            });
-            
-            return true;
-        } catch (error) {
-            console.log(chalk.yellow(`⚠️ Password authentication failed: ${error.message}`));
-            console.log(chalk.cyan('Falling back to SSH key authentication...'));
-        }
-    }
-    
-    // Try SSH key authentication using ssh2 library instead of command line
+    // Only try password authentication
     try {
-        console.log(chalk.cyan('Attempting SSH key authentication...'));
+        console.log(chalk.cyan('Attempting password authentication...'));
         
-        // Try to connect using SSH key
         await new Promise((resolve, reject) => {
             const conn = new Client();
             
-            let authConfig = {
-                host: config.host,
-                username: config.username,
-                readyTimeout: 30000
-            };
-            
-            // Add private key if available
-            if (config.privateKeyPath) {
-                // Resolve tilde in path if present
-                const resolvedKeyPath = config.privateKeyPath.replace(/^~/, os.homedir());
-                if (fs.existsSync(resolvedKeyPath)) {
-                    try {
-                        authConfig.privateKey = fs.readFileSync(resolvedKeyPath);
-                    } catch (err) {
-                        // If we can't read the key, just continue without it
-                        console.log(chalk.yellow(`⚠️ Could not read private key: ${err.message}`));
-                    }
-                } else {
-                    console.log(chalk.yellow(`⚠️ Private key not found at ${resolvedKeyPath}`));
-                }
-            }
-            
-            let connectionTimeout = setTimeout(() => {
+            let passwordTimeout = setTimeout(() => {
                 conn.end();
-                reject(new Error('SSH connection timeout after 15 seconds'));
+                reject(new Error('Password authentication timeout after 15 seconds'));
             }, 15000);
-            
+
             conn.on('ready', () => {
-                clearTimeout(connectionTimeout);
-                console.log(chalk.green('✅ SSH key authentication successful'));
+                clearTimeout(passwordTimeout);
+                console.log(chalk.green('✅ Password authentication successful'));
                 conn.end();
                 resolve(true);
             }).on('error', (err) => {
-                clearTimeout(connectionTimeout);
+                clearTimeout(passwordTimeout);
                 reject(err);
-            }).connect(authConfig);
+            }).connect({
+                host: config.host,
+                username: config.username,
+                password: config.password,
+                readyTimeout: 30000
+            });
         });
         
         return true;
     } catch (error) {
-        console.log(chalk.yellow('⚠️ SSH key authentication failed. Trying password authentication...'));
+        console.log(chalk.yellow(`⚠️ Password authentication failed: ${error.message}`));
         
         // If we don't have a password, ask for one
         if (!password) {

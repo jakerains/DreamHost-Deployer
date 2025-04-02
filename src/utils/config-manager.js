@@ -25,15 +25,9 @@ function loadConfig(configPath) {
     config.remotePath = process.env.DREAMHOST_REMOTE_PATH;
     config.localPath = process.env.DREAMHOST_LOCAL_PATH || process.cwd();
     
-    // Authentication
+    // Authentication - only password authentication is supported
     if (process.env.DREAMHOST_PASSWORD) {
       config.password = process.env.DREAMHOST_PASSWORD;
-    } else if (process.env.DREAMHOST_PRIVATE_KEY_PATH) {
-      config.privateKeyPath = process.env.DREAMHOST_PRIVATE_KEY_PATH;
-    } else {
-      // Default to ~/.ssh/id_rsa if no auth method specified
-      const homeDir = os.homedir();
-      config.privateKeyPath = path.join(homeDir, '.ssh', 'id_rsa');
     }
     
     // Other settings
@@ -85,14 +79,9 @@ function validateConfig(config) {
   if (!config.username) errors.push('Missing username (SSH username)');
   if (!config.remotePath) errors.push('Missing remotePath (path on DreamHost server)');
   
-  // Check that we have either password or privateKeyPath
-  if (!config.password && !config.privateKeyPath) {
-    errors.push('Missing authentication method (password or privateKeyPath)');
-  }
-  
-  // If privateKeyPath is specified, check that it exists
-  if (config.privateKeyPath && !fs.existsSync(path.resolve(config.privateKeyPath))) {
-    errors.push(`Private key not found at ${config.privateKeyPath}`);
+  // Check that we have password
+  if (!config.password) {
+    errors.push('Missing authentication method (password)');
   }
   
   // If localPath is specified, check that it exists
@@ -131,17 +120,8 @@ async function createConfig(configPath, isVite = false, projectInfo = null) {
   config.host = await prompt('DreamHost hostname (e.g., example.com):');
   config.username = await prompt('SSH username:');
   
-  // Detect whether to use password or key authentication
-  const authType = await prompt('Authentication type (password/key) [password]:') || 'password';
-  
-  if (authType.toLowerCase() === 'password') {
-    config.password = await prompt('SSH password:');
-  } else {
-    // Default to ~/.ssh/id_rsa, but allow custom path
-    const homeDir = os.homedir();
-    const defaultKeyPath = path.join(homeDir, '.ssh', 'id_rsa');
-    config.privateKeyPath = await prompt(`Path to private key [${defaultKeyPath}]:`) || defaultKeyPath;
-  }
+  // Password authentication only
+  config.password = await prompt('SSH password:');
   
   config.remotePath = await prompt('Remote path on DreamHost (e.g., /home/username/example.com):');
   config.localPath = await prompt(`Local path to deploy from [${process.cwd()}]:`) || process.cwd();
