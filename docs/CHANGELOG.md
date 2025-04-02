@@ -2,6 +2,15 @@
 
 All notable changes to the DreamHost Deployer project will be documented in this file.
 
+## [0.7.3] - 2025-04-02
+
+### Improved
+- Simplified configuration process by deriving target folder from hostname
+  - Removed the separate target folder input prompt
+  - Automatically uses the hostname as the target folder
+  - Reduced the number of configuration steps required during setup
+  - Improved user experience with a more streamlined setup process
+
 ## [0.7.2] - 2025-04-02
 
 ### Fixed

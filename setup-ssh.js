@@ -100,12 +100,6 @@ async function initConfig() {
         },
         {
             type: 'input',
-            name: 'targetFolder',
-            message: 'Enter target folder/domain (e.g., example.com):',
-            validate: (input) => input.trim() !== '' ? true : 'Target folder cannot be empty'
-        },
-        {
-            type: 'input',
             name: 'localPath',
             message: 'Enter local path to deploy (default: ./dist):',
             default: './dist'
@@ -113,11 +107,11 @@ async function initConfig() {
         // Password will be asked for during deployment or setup process
     ]);
     
-    // Update config with answers
+    // Update config with answers and derive target folder from hostname
     config.host = answers.host;
     config.username = answers.username;
-    config.targetFolder = answers.targetFolder;
-    config.remotePath = `/home/${answers.username}/${answers.targetFolder}`;
+    config.targetFolder = answers.host; // Use hostname as the target folder
+    config.remotePath = `/home/${answers.username}/${config.targetFolder}`;
     config.localPath = answers.localPath;
     // Password authentication only
     

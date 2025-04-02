@@ -129,7 +129,11 @@ async function createConfig(configPath, isVite = false, projectInfo = null) {
   }]);
   config.password = password;
   
-  config.remotePath = await prompt('Remote path on DreamHost (e.g., /home/username/example.com):');
+  // Use hostname as target folder and derive remote path
+  config.targetFolder = config.host;
+  config.remotePath = `/home/${config.username}/${config.targetFolder}`;
+  console.log(chalk.cyan(`ℹ️ Remote path set to: ${config.remotePath}`));
+  
   config.localPath = await prompt(`Local path to deploy from [${process.cwd()}]:`) || process.cwd();
   
   // Use project info if available, otherwise ask about build integration
