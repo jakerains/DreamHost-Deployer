@@ -1,15 +1,14 @@
-# DreamHost Deployer
+# 🚀 DreamHost Deployer
 
 <div align="center">
   
-  <!-- Logo created with SVG -->
-  <img src="assets/images/logo.png" alt="DreamHost Deployer Logo" width="150" height="150" />
+  <h1>🏠 🔄 💻</h1>
   
   ![Version](https://img.shields.io/badge/version-0.7.4-blue.svg?style=flat-square)
   ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
   ![Node](https://img.shields.io/badge/node-%3E=14.0.0-brightgreen.svg?style=flat-square)
   
-  <h3>A stylish, interactive CLI tool for deploying websites to DreamHost</h3>
+  <h3>✨ A stylish, interactive CLI tool for deploying websites to DreamHost ✨</h3>
 </div>
 
 DreamHost Deployer is a powerful command-line tool that makes deploying websites to DreamHost shared hosting simple, reliable, and visually appealing. With its interactive menus, progress indicators, and smart project detection, it streamlines the deployment process for developers of all experience levels.
@@ -98,25 +97,53 @@ dreamhost-deployer deploy
    dreamhost-deployer deploy
    ```
 
-## 📸 Terminal Interface
-
-The screenshots below are mockups representing the actual terminal interface you'll experience when using DreamHost Deployer.
+## 🖥️ Terminal Interface Features
 
 <div align="center">
-  <h3>Interactive Terminal Menu</h3>
-  <p>Choose from a variety of deployment and configuration options</p>
-  <img src="assets/images/main-menu.png" alt="DreamHost Deployer Terminal Menu" width="700">
-  
-  <h3>Deployment Process</h3>
-  <p>Clear progress tracking and visual feedback</p>
-  <img src="assets/images/deployment.png" alt="DreamHost Deployer Deployment" width="700">
-  
-  <h3>SSH Key Setup</h3>
-  <p>Easy SSH key management with step-by-step instructions</p>
-  <img src="assets/images/ssh-setup.png" alt="DreamHost Deployer SSH Setup" width="700">
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                        DREAMHOST DEPLOYMENT                         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+✅ Loaded configuration from deploy.config.json
+
+╔════════════════╤══════════════════════════════════════╗
+║ Setting        │ Value                                ║
+╟────────────────┼──────────────────────────────────────╢
+║ Host           │ example.com                          ║
+╟────────────────┼──────────────────────────────────────╢
+║ Username       │ username                             ║
+╟────────────────┼──────────────────────────────────────╢
+║ Remote Path    │ /home/username/example.com           ║
+╟────────────────┼──────────────────────────────────────╢
+║ Authentication │ Password                             ║
+╚════════════════╧══════════════════════════════════════╝
+
+Uploading |████████████████████████████████████████| 100%
+
+✨ Deployment completed successfully!
+```
+
 </div>
 
-**Note:** To see these beautiful terminal interfaces yourself, install the package and run `dreamhost-deployer`!
+### ✨ Interactive and Beautiful UI
+
+- 🎨 **Colorful Output** - Makes important information stand out
+- 📊 **Progress Bars** - Real-time feedback on deployment progress
+- 📋 **Tables** - Clear presentation of configuration settings
+- 🔄 **Spinners** - Visual indication of running processes
+- 🚦 **Status Indicators** - Icons show success, warnings, and errors
+- 🎭 **Box Drawing** - Sections are clearly separated with professional borders
+
+### 🧠 Smart Interactive Features
+
+- 📝 **Step-by-Step Wizards** - Guide you through complex processes
+- 🛠️ **Project Type Detection** - Automatically optimizes for your framework
+- 📋 **Auto-Suggestions** - Provides smart defaults based on your project
+- 🔍 **Dry Run Mode** - Preview changes without modifying the server
+
+**Try it yourself!** Install the package and run `dreamhost-deployer` to experience the stylish interface.
 
 ## 📋 Command Reference
 
@@ -127,9 +154,8 @@ The screenshots below are mockups representing the actual terminal interface you
 | `dreamhost-deployer deploy` | Deploy website to DreamHost |
 | `dreamhost-deployer deploy --dry-run` | Preview deployment without making changes |
 | `dreamhost-deployer build` | Run build process without deploying |
-| `dreamhost-deployer setup-ssh` | Set up SSH key authentication |
-| `dreamhost-deployer ssh-setup` | Set up SSH key authentication (alias) |
-| `dreamhost-deployer fix-ssh-key` | Fix SSH key permissions |
+| `dreamhost-deployer setup-ssh` | Set up SSH password authentication |
+| `dreamhost-deployer ssh-setup` | Set up SSH password authentication (alias) |
 | `dreamhost-deployer check-server` | Check Node.js environment on server |
 | `dreamhost-deployer setup-node` | Install Node.js on DreamHost server |
 | `dreamhost-deployer project-settings` | Configure project-specific settings |
@@ -212,7 +238,7 @@ Here's a complete example of the `deploy.config.json` file:
   "username": "your-username",
   "remotePath": "/home/your-username/example.com",
   "localPath": "./dist",
-  "privateKeyPath": "~/.ssh/id_rsa",
+  "password": "your-password", // Not recommended to store in config
   "webServer": "apache",
   "buildIntegration": true,
   "buildCommand": "npm run build",
@@ -240,8 +266,7 @@ Here's a complete example of the `deploy.config.json` file:
 | `username` | SSH username for DreamHost | N/A (required) |
 | `remotePath` | Path on DreamHost server | N/A (required) |
 | `localPath` | Local directory to deploy | Current directory |
-| `privateKeyPath` | Path to SSH private key | `~/.ssh/id_rsa` |
-| `password` | SSH password (not recommended) | N/A |
+| `password` | SSH password (used for authentication) | N/A |
 | `webServer` | Server type (apache/nginx) | `apache` |
 | `buildIntegration` | Enable build before deploy | `false` |
 | `buildCommand` | Command to build project | Varies by framework |
@@ -263,7 +288,7 @@ DREAMHOST_HOST=example.dreamhost.com
 DREAMHOST_USERNAME=your-username
 DREAMHOST_REMOTE_PATH=/home/your-username/example.com
 DREAMHOST_LOCAL_PATH=./dist
-DREAMHOST_PRIVATE_KEY_PATH=~/.ssh/id_rsa
+DREAMHOST_PASSWORD=your-password  # Not recommended for security reasons
 DREAMHOST_WEB_SERVER=apache
 DREAMHOST_BUILD_INTEGRATION=true
 DREAMHOST_BUILD_COMMAND=npm run build
@@ -536,26 +561,30 @@ dreamhost-deployer server-config --type nginx
 
 If you're having trouble connecting to your DreamHost server:
 
-1. **Run SSH Fix Tool**
+1. **Check Authentication Information**
+   - Verify username and hostname are correctly entered
+   - Ensure your DreamHost password is correct
+   - Check that SSH access is enabled for your account
+
+2. **Test Direct SSH Connection**
    ```bash
-   dreamhost-deployer fix-ssh-key
+   ssh username@example.dreamhost.com
    ```
 
-2. **Verify SSH Key in DreamHost Panel**
-   - Log into DreamHost control panel
-   - Go to Users → Manage Users → SSH Keys
-   - Verify your public key is listed
-
 3. **Check Common SSH Issues**
-   - SSH key permissions should be 600 for private key
-   - .ssh directory permissions should be 700
-   - Correct hostname and username in config
-   - Firewall not blocking SSH (port 22)
+   - Confirm your DreamHost server allows SSH connections
+   - Check that your local network allows outbound SSH (port 22)
+   - Verify firewall settings aren't blocking SSH connections
 
 4. **Verbose SSH Connection for Debugging**
    ```bash
    ssh -vvv username@example.dreamhost.com
    ```
+
+5. **Verify DreamHost Account Settings**
+   - Log into DreamHost control panel
+   - Go to Users → Manage Users 
+   - Ensure SSH access is enabled for your user
 
 ### Deployment Failures
 
@@ -610,28 +639,30 @@ These logs contain detailed information about what went wrong during deployment.
 - **Build Tools**: If using build integration, requirements depend on your project
 - **Terminal**: Any modern terminal with color support for best experience
 
-## 🔄 Upcoming Features
+## 🔮 Coming Soon
 
-- [ ] Continuous deployment via GitHub Actions
-- [ ] Multi-site deployment profile management
-- [ ] Database backup and migration tools
-- [ ] Post-deployment testing
-- [ ] Site performance analysis
-- [ ] Enhanced logging and deployment history
+- 🔄 **Continuous Deployment** - Automated deployments with GitHub Actions
+- 🏢 **Multi-site Management** - Deploy to multiple sites with profile switching
+- 💾 **Database Tools** - MySQL backup and migration capabilities 
+- 🧪 **Post-deploy Testing** - Automated site verification after deployment
+- ⚡ **Performance Analysis** - Built-in tools to analyze site performance
+- 📊 **Enhanced Logs** - Detailed deployment history and visualizations
 
 ## 📜 License
 
 MIT © [jakerains](https://github.com/jakerains)
 
-## 🧑‍💻 Contributing
+## 🧑‍💻 Join the Community
 
-Contributions are welcome! Feel free to:
+We'd love your help making DreamHost Deployer even better! Ways to contribute:
 
-- Report bugs
-- Suggest features
-- Submit pull requests
+- 🐛 **Report Bugs** - Help us squash those pesky bugs
+- 💡 **Suggest Features** - Great ideas make great software
+- 🛠️ **Submit PRs** - Code contributions are always welcome
+- 📚 **Improve Docs** - Clear documentation helps everyone
+- 🌟 **Spread the Word** - Tell others about DreamHost Deployer
 
-Please see our [contributing guidelines](CONTRIBUTING.md) for more details.
+Check out our [contributing guidelines](CONTRIBUTING.md) for details.
 
 ## 🙏 Credits
 
@@ -642,5 +673,8 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more details.
 ---
 
 <div align="center">
+  <h3>🌟 🚀 🌟</h3>
   <p><strong>DreamHost Deployer</strong> - Making website deployment a dream!</p>
+  <p>💫 Simple • Powerful • Beautiful 💫</p>
+  <p>Created with ❤️ by <a href="https://github.com/jakerains">jakerains</a></p>
 </div>
