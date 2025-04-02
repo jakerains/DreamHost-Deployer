@@ -122,7 +122,7 @@ function saveConfig(config, configPath) {
 }
 
 // Interactive configuration creator
-async function createConfig(configPath, isVite = false) {
+async function createConfig(configPath, isVite = false, projectInfo = null) {
   const config = {};
   
   console.log(chalk.blue('Let\'s set up your DreamHost deployment configuration...'));
@@ -146,27 +146,43 @@ async function createConfig(configPath, isVite = false) {
   config.remotePath = await prompt('Remote path on DreamHost (e.g., /home/username/example.com):');
   config.localPath = await prompt(`Local path to deploy from [${process.cwd()}]:`) || process.cwd();
   
-  // Ask about build integration
-  const enableBuildIntegration = (await prompt('Enable build integration? (y/n) [y]:') || 'y').toLowerCase();
-  
-  if (enableBuildIntegration === 'y') {
+  // Use project info if available, otherwise ask about build integration
+  if (projectInfo) {
+    console.log(chalk.green(`✅ Applying detected ${projectInfo.type} project settings`));
     config.buildIntegration = true;
+    config.buildCommand = projectInfo.buildCommand;
+    config.buildOutputDir = projectInfo.outputDir;
+    config.exclude = projectInfo.exclude || ['node_modules', '.git', '.env', '.DS_Store'];
     
-    // Use Vite defaults if it's a Vite project
-    const defaultBuildCmd = isVite ? 'npm run build' : 'npm run build';
-    const defaultOutputDir = isVite ? 'dist' : 'build';
+    // Show detected settings
+    console.log(chalk.cyan(`ℹ️ Build command: ${config.buildCommand}`));
+    console.log(chalk.cyan(`ℹ️ Output directory: ${config.buildOutputDir}`));
+  } else {
+    // Ask about build integration
+    const enableBuildIntegration = (await prompt('Enable build integration? (y/n) [y]:') || 'y').toLowerCase();
     
-    config.buildCommand = await prompt(`Build command [${defaultBuildCmd}]:`) || defaultBuildCmd;
-    config.buildOutputDir = await prompt(`Output directory [${defaultOutputDir}]:`) || defaultOutputDir;
-    
-    // For Vite projects, add additional guidance
-    if (isVite) {
-      console.log(chalk.cyan('ℹ️ For Vite projects, common build commands include:'));
-      console.log(chalk.cyan('   - npm run build (package.json script)'));
-      console.log(chalk.cyan('   - yarn build (if using Yarn)'));
-      console.log(chalk.cyan('   - npx vite build (direct vite command)'));
-      console.log(chalk.cyan('The standard output directory for Vite is "dist"'));
+    if (enableBuildIntegration === 'y') {
+      config.buildIntegration = true;
+      
+      // Use Vite defaults if it's a Vite project
+      const defaultBuildCmd = isVite ? 'npm run build' : 'npm run build';
+      const defaultOutputDir = isVite ? 'dist' : 'build';
+      
+      config.buildCommand = await prompt(`Build command [${defaultBuildCmd}]:`) || defaultBuildCmd;
+      config.buildOutputDir = await prompt(`Output directory [${defaultOutputDir}]:`) || defaultOutputDir;
+      
+      // For Vite projects, add additional guidance
+      if (isVite) {
+        console.log(chalk.cyan('ℹ️ For Vite projects, common build commands include:'));
+        console.log(chalk.cyan('   - npm run build (package.json script)'));
+        console.log(chalk.cyan('   - yarn build (if using Yarn)'));
+        console.log(chalk.cyan('   - npx vite build (direct vite command)'));
+        console.log(chalk.cyan('The standard output directory for Vite is "dist"'));
+      }
     }
+    
+    // Set default exclusions
+    config.exclude = ['node_modules', '.git', '.env', '.DS_Store'];
   }
   
   // Ask for web server type
@@ -184,9 +200,6 @@ async function createConfig(configPath, isVite = false) {
   ]);
   
   config.webServer = webServer;
-  
-  // Set default exclusions
-  config.exclude = ['node_modules', '.git', '.env', '.DS_Store'];
   
   // Save the configuration
   saveConfig(config, configPath);

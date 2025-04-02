@@ -8,6 +8,7 @@ const chalk = require('chalk');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { Client } = require('ssh2'); // Add ssh2 client for cross-platform compatibility
 
 // Recommended versions

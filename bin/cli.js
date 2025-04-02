@@ -79,6 +79,15 @@ program
   .command('version')
   .description('Display fancy version information')
   .action(displayVersion);
+  
+// Initialize command - sets up project for deployment
+program
+  .command('init')
+  .description('Initialize project for DreamHost deployment')
+  .action(() => {
+    const initCommand = require('../src/commands/init-command');
+    initCommand.run();
+  });
 
 // Main menu command (default when no arguments provided)
 program
@@ -111,6 +120,11 @@ program
       {
         name: 'CONFIGURATION',
         type: 'separator'
+      },
+      {
+        name: '🚀 Initialize project',
+        value: 'init',
+        description: 'Set up a new project for DreamHost deployment'
       },
       {
         name: '📋 Project-specific settings',
@@ -206,6 +220,10 @@ program
         } catch (error) {
           console.error(ui.error(`Build failed: ${error.message}`));
         }
+        break;
+      case 'init':
+        const initCommand = require('../src/commands/init-command');
+        await initCommand.run();
         break;
       case 'setup-ssh':
         setupSsh.run();
@@ -471,21 +489,21 @@ function showDocs() {
   
   // Quick start guide
   console.log(ui.collapsibleSection('Quick Start', `
-1. Initialize configuration:
+1. Initialize project (sets up config and tests connection):
    ${ui.codeBlock('dreamhost-deployer init')}
 
-2. Set up SSH:
+2. If SSH setup wasn't completed during init:
    ${ui.codeBlock('dreamhost-deployer setup-ssh')}
 
-3. Set up Node.js on server (optional):
-   ${ui.codeBlock('dreamhost-deployer setup-node')}
-
-4. Deploy your website:
+3. Deploy your website:
    ${ui.codeBlock('dreamhost-deployer deploy')}
   `));
   
   // Common commands
   console.log(ui.collapsibleSection('Common Commands', `
+• Initialize project:
+  ${ui.codeBlock('dreamhost-deployer init')}
+
 • Deploy website:
   ${ui.codeBlock('dreamhost-deployer deploy')}
 

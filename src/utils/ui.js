@@ -299,6 +299,26 @@ function badge(text, type = 'normal') {
   return chalk[style.bg][style.fg](` ${text} `);
 }
 
+/**
+ * Display a success box with a message or array of messages
+ * @param {string|string[]} content The content to display
+ */
+function successBox(content) {
+  const messages = Array.isArray(content) ? content : [content];
+  
+  console.log(boxen(
+    messages.join('\n'),
+    {
+      padding: 1,
+      margin: { top: 1, bottom: 1 },
+      borderStyle: 'round',
+      borderColor: 'green',
+      title: '✅ Success',
+      titleAlignment: 'center'
+    }
+  ));
+}
+
 module.exports = {
   showAppHeader,
   sectionHeader,
@@ -319,5 +339,6 @@ module.exports = {
   box,
   listItem,
   command,
-  badge
+  badge,
+  successBox
 }; 
